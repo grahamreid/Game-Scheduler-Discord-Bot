@@ -6,8 +6,12 @@ import { getDatabase } from "./mongo";
  */
 export async function ensureDatabaseIndexes(): Promise<void> {
   const database = await getDatabase();
-  await database.collection("planningRounds").createIndexes([
-    { key: { id: 1 }, name: "planning_round_id", unique: true },
+  const planningRounds = database.collection("planningRounds");
+  const indexes = await planningRounds.listIndexes().toArray();
+  if (indexes.some((index) => index.name === "planning_round_id")) {
+    await planningRounds.dropIndex("planning_round_id");
+  }
+  await planningRounds.createIndexes([
     { key: { status: 1, availabilityClosesAt: 1 }, name: "open_round_deadline" },
   ]);
 }

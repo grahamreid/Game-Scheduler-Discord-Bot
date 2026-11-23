@@ -12,12 +12,8 @@ export interface CreatePlanningRoundInput {
   candidateDates: Array<{ date: string; displayOrder: number }>;
 }
 
-/**
- * MongoDB document for a planning round. Candidate dates are embedded because
- * they only exist within one round and are always read with that round.
- */
-interface PlanningRoundDocument extends PlanningRound {
-  _id: string;
+/** Candidate dates are embedded because they only exist within one round. */
+export interface PlanningRoundDocument extends PlanningRound {
   candidateDates: CandidateDate[];
 }
 
@@ -31,7 +27,6 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
   const id = randomUUID();
   const round: PlanningRoundDocument = {
     _id: id,
-    id,
     guildId: input.guildId,
     channelId: input.channelId,
     status: "open",
@@ -55,5 +50,6 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
 
 /** Looks up a round by its ID, or returns null when it is absent. */
 export async function findPlanningRound(id: string): Promise<PlanningRoundDocument | null> {
-  return (await rounds()).findOne({ _id: id });
+  const round = await (await rounds()).findOne({ _id: id });
+  return round;
 }

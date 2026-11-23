@@ -18,7 +18,8 @@ export interface CandidateDate {
 
 /** The persisted state of one board-game-night planning process. */
 export interface PlanningRound {
-  id: string;
+  /** MongoDB's built-in, indexed identifier for this round. */
+  _id: string;
   guildId: string;
   channelId: string;
   status: RoundStatus;
