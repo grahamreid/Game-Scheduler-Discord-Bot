@@ -1,0 +1,8 @@
+* local simulator layer
+* decide how to break ties (probably a subsequent question for users to pick one of the two days, only one choice allowed)
+* some time down the road see if people want a reminder message in the channel
+* command for deleting out activities
+* if only 2 people available for any particular time slot, cancel
+* let's do top 5 instead of top 10, + whatever suggestions people add
+* actual deployment plan?
+* limit or prevent interactivity with the server when not expected
