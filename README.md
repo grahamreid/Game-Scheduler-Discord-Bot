@@ -14,7 +14,6 @@ docker compose up -d
 npm install
 npm run db:init
 npm run simulate
-npm test
 ```
 
 The local database runs in Docker. The simulator persists a sample planning
@@ -33,3 +32,9 @@ to erase the local database.
 Use MongoDB locally through Docker and in production through MongoDB Atlas M0.
 Keeping the same database technology in both environments is intentional: this
 is a small MVP and does not need a database abstraction layer.
+
+## Validation approach
+
+This MVP deliberately uses simulations and manual end-to-end checks instead of
+unit tests. As each workflow is built, its repeatable validation steps will be
+added to `docs/simulations/` so you can run and inspect the same scenarios.

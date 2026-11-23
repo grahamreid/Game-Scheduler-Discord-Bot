@@ -7,3 +7,4 @@
 * actual deployment plan?
 * limit or prevent interactivity with the server when not expected
 * availabilityClosedAt should probably be pushed out an hour when tie so the tie can be resolved
+* consolidate this file with decision + backlog

@@ -15,7 +15,6 @@ MongoDB, and Discord bots.
 | `.gitignore` | Tells Git not to track generated dependencies, data, or secrets. |
 | `README.md` | The short setup and run guide. |
 | `docs/` | Project decisions and human-facing technical explanations. |
-| `tests/` | Automated checks; the integration test uses local Docker MongoDB. |
 | `src/` | Application source code. |
 
 ## `src` layout
@@ -40,7 +39,6 @@ src/
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/presentation/cli/simulate.ts` | Discord-free smoke test that writes and prints a sample round. |
 | `src/index.ts` | Placeholder main entry point for the future Discord interaction handler. |
-| `tests/integration/database.test.ts` | Verifies MongoDB can persist and retrieve a round. |
 
 ## TypeScript terms used here
 
@@ -80,3 +78,10 @@ storage, suitable for this small group. A later AWS deployment can use Lambda,
 API Gateway, and EventBridge Scheduler while continuing to use the same Atlas
 connection URI. Moving to a paid Atlas tier or a different database is deferred
 until the bot has proven its needs.
+
+## Validation approach
+
+We are intentionally not maintaining unit tests during the MVP. Instead, each
+feature receives a manual end-to-end scenario in `docs/simulations/`. A
+scenario will state the commands to run, the simulated members/actions, and the
+MongoDB queries or Discord messages that demonstrate the expected result.

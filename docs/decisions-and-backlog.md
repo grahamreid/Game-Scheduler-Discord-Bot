@@ -7,6 +7,8 @@
   deployment. MongoDB Atlas M0 is the intended MVP database.
 - Local MongoDB runs through Docker Compose.
 - The code intentionally has no generic database abstraction/repository layer.
+- The MVP uses manual end-to-end validation and simulator scenarios rather than
+  unit tests. Repeatable scenarios belong in `docs/simulations/`.
 - Availability is multi-select and has a scheduled close deadline.
 - The most popular date wins. An availability tie receives a separate
   single-choice tie-breaker poll.
