@@ -11,7 +11,7 @@ MongoDB, and Discord bots.
 | `package-lock.json` | Exact dependency versions. Do not edit by hand. |
 | `tsconfig.json` | TypeScript compiler settings, including strict type checking. |
 | `.env.example` | Safe local-config template. Copy it to `.env`; the actual `.env` is ignored because it may contain secrets. |
-| `docker-compose.yml` | Starts a local MongoDB container with persistent Docker-managed storage. |
+| `docker-compose.yml` | One of two supported local MongoDB options; the other is native MongoDB Community Server. |
 | `.gitignore` | Tells Git not to track generated dependencies, data, or secrets. |
 | `README.md` | The short setup and run guide. |
 | `docs/` | Project decisions and human-facing technical explanations. |
@@ -53,10 +53,11 @@ src/
 
 ## Inspecting the local MongoDB database
 
-Once Docker is running, open an interactive MongoDB shell:
+With native MongoDB running or Docker Compose started, open an interactive
+shell:
 
 ```powershell
-docker compose exec mongo mongosh -u boardgame -p boardgame-dev-password --authenticationDatabase admin board-game-scheduler
+mongosh "mongodb://127.0.0.1:27017/board-game-scheduler"
 ```
 
 Useful MongoDB commands:
@@ -69,7 +70,9 @@ db.planningRounds.getIndexes()
 ```
 
 Exit with `exit`. MongoDB Compass is the graphical alternative: connect using
-the `MONGODB_URI` value in your `.env` file.
+the `MONGODB_URI` value in your `.env` file. `mongosh` is installed separately
+from native MongoDB Server. When using Docker, run `docker compose exec mongo
+mongosh board-game-scheduler` if `mongosh` is not installed on your computer.
 
 ## Deployment
 

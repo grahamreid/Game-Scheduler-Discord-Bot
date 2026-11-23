@@ -10,8 +10,15 @@ Each scenario should include:
 
 The current foundation check is:
 
+Start MongoDB using either native MongoDB Community Server or Docker Compose:
+
 ```powershell
 docker compose up -d
+```
+
+Then run:
+
+```powershell
 npm run db:init
 npm run simulate
 ```
@@ -19,5 +26,11 @@ npm run simulate
 Then inspect the created document with:
 
 ```powershell
-docker compose exec mongo mongosh -u boardgame -p boardgame-dev-password --authenticationDatabase admin board-game-scheduler --eval "db.planningRounds.find().pretty()"
+mongosh "mongodb://127.0.0.1:27017/board-game-scheduler" --eval "db.planningRounds.find().pretty()"
+```
+
+If `mongosh` is not installed locally and you chose Docker, use:
+
+```powershell
+docker compose exec mongo mongosh board-game-scheduler --eval "db.planningRounds.find().pretty()"
 ```

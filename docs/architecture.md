@@ -19,8 +19,9 @@ Discord interaction or local simulator
       MongoDB locally / MongoDB Atlas in production
 ```
 
-The same TypeScript code will connect to Docker MongoDB locally and MongoDB
-Atlas after deployment; only `MONGODB_URI` changes.
+The same TypeScript code will connect to native MongoDB Community Server or
+Docker Compose locally, and MongoDB Atlas after deployment. The local options
+share the same `MONGODB_URI`.
 
 ## Round workflow
 
@@ -81,7 +82,7 @@ instants.
 
 ## Local verification
 
-Docker Compose starts a local MongoDB instance. The simulator and integration
-test use the connection string from `.env`, which points to this local service
-by default. MongoDB Atlas M0 is the intended initial production option; it has
-a free tier suitable for this small bot.
+Either native MongoDB Community Server or Docker Compose runs MongoDB locally.
+The simulator uses the connection string from `.env`, which works with either
+choice. MongoDB Atlas M0 is the intended initial production option; it has a
+free tier suitable for this bot.

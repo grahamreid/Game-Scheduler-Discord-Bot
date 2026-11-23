@@ -5,7 +5,8 @@
 - TypeScript and discord.js are the implementation platform.
 - MongoDB is used directly for both local development and the initial cloud
   deployment. MongoDB Atlas M0 is the intended MVP database.
-- Local MongoDB runs through Docker Compose.
+- Local MongoDB supports either native MongoDB Community Server or Docker
+  Compose; both use the same local connection string.
 - The code intentionally has no generic database abstraction/repository layer.
 - The MVP uses manual end-to-end validation and simulator scenarios rather than
   unit tests. Repeatable scenarios belong in `docs/simulations/`.
@@ -37,7 +38,7 @@
 
 ## Implementation sequence
 
-1. MongoDB setup, local Docker development, and simulator.
+1. MongoDB setup, local development, and simulator.
 2. Round lifecycle, deadline processor, availability winner/tie logic.
 3. Discord announcement and availability collection.
 4. Activity suggestions and voting display.
