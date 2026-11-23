@@ -36,7 +36,7 @@ describe("SQLite persistence", () => {
           { id: "date-2", date: "2026-11-28", displayOrder: 2 },
         ],
       });
-      expect(await repository.findById("round-1")).toMatchObject({ status: "draft", selectedDate: null });
+      expect(await repository.findById("round-1")).toMatchObject({ status: "open", selectedDate: null });
       expect(await repository.listCandidateDates("round-1")).toHaveLength(2);
     } finally {
       sqlite.close();

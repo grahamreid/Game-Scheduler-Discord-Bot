@@ -24,6 +24,11 @@ function toRound(row: typeof planningRounds.$inferSelect): PlanningRound {
   };
 }
 
+/**
+ * SQLite-specific implementation of the storage contract. The name identifies
+ * its database technology; callers should normally depend on
+ * `PlanningRoundRepository`, not this concrete class.
+ */
 export class SqlitePlanningRoundRepository implements PlanningRoundRepository {
   constructor(private readonly db: AppDatabase) {}
 
@@ -34,7 +39,7 @@ export class SqlitePlanningRoundRepository implements PlanningRoundRepository {
         id: input.id,
         guildId: input.guildId,
         channelId: input.channelId,
-        status: "draft",
+        status: "open",
         title: input.title ?? null,
         availabilityClosesAt: input.availabilityClosesAt.toISOString(),
         selectedDate: null,

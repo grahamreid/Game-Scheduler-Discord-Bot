@@ -1,12 +1,14 @@
+/**
+ * The few meaningful lifecycle states of a planning round. `open` deliberately
+ * covers availability, activity discussion, and host volunteering at once.
+ */
 export type RoundStatus =
-  | "draft"
-  | "availability_open"
+  | "open"
   | "availability_tiebreak"
-  | "activities_open"
-  | "hosting_open"
   | "finalized"
   | "cancelled";
 
+/** A date shown as an option in a round's availability poll. */
 export interface CandidateDate {
   id: string;
   roundId: string;
@@ -14,6 +16,7 @@ export interface CandidateDate {
   displayOrder: number;
 }
 
+/** The persisted state of one board-game-night planning process. */
 export interface PlanningRound {
   id: string;
   guildId: string;

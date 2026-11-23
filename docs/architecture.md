@@ -30,8 +30,8 @@ without Discord.
 
 ## Round workflow
 
-1. An administrator creates a round with its possible event dates and an
-   availability deadline.
+1. An administrator creates an `open` round with its possible event dates and
+   an availability deadline.
 2. The availability prompt is open until the deadline; members can select all
    dates that work for them.
 3. A scheduler closes availability at the deadline and selects the most popular
@@ -45,7 +45,8 @@ without Discord.
 Activity and host collection may run at the same time as availability, but host
 eligibility is evaluated only after the event date is chosen. The first release
 will use an availability deadline; activities do not need an independent close
-time unless a future workflow needs one.
+time unless a future workflow needs one. The status values are intentionally
+small: `open`, `availability_tiebreak`, `finalized`, and `cancelled`.
 
 ## Time model
 
@@ -125,3 +126,22 @@ services used by Discord. Fixture users and a controllable clock let tests
 submit several users' answers, advance past the availability deadline, and
 verify selections without multiple Discord accounts. A private Discord test
 guild will cover real interaction components.
+
+## Moving beyond SQLite
+
+The application layer depends on interfaces such as `PlanningRoundRepository`,
+not the SQLite driver. When changing databases, the domain types, Discord
+handlers, selection rules, and simulator scenarios stay the same. We would:
+
+1. Write a new adapter, for example `PostgresPlanningRoundRepository` or
+   `DynamoPlanningRoundRepository`, that implements the same interface.
+2. Add that database's connection setup and replace the application's wiring
+   at startup.
+3. Rewrite the physical migrations/schema for the selected engine and migrate
+   the data. SQLite SQL is not automatically portable: PostgreSQL has native
+   `timestamptz`/`date` types, while DynamoDB needs a deliberate key and index
+   design instead of relational tables.
+
+Drizzle provides useful TypeScript query types for SQLite and PostgreSQL. It
+does not make a relational schema automatically interchangeable with DynamoDB;
+the repository boundary is what keeps that change isolated.

@@ -3,9 +3,10 @@
 ## Confirmed decisions
 
 - SQLite is the initial local-development database.
-- Production deployment will use PostgreSQL (likely Amazon RDS); SQLite remains
-  for local development, tests, and simulation. Drizzle ORM supplies typed
-  database access for both engines.
+- SQLite is retained for local development, tests, and simulation. The cloud
+  database is intentionally deferred: DynamoDB on-demand is the leading AWS
+  option for a mostly-idle, pay-per-request deployment; Aurora Serverless
+  PostgreSQL is the relational alternative when SQL is preferred.
 - TypeScript and discord.js are the implementation platform.
 - Availability is a multi-select question and has a scheduled close deadline.
 - The most popular available date wins. An availability tie receives a separate
