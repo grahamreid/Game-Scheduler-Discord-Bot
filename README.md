@@ -1,25 +1,27 @@
 # Board Game Scheduler
 
 A Discord bot for organizing recurring board-game nights. The current milestone
-sets up the typed SQLite persistence layer and a local simulator; Discord
-interactions are the next milestone.
+sets up MongoDB persistence and a local simulator; Discord interactions are the
+next milestone.
 
 ## Local setup
 
 Requirements: Node.js 18 or newer and npm.
 
 ```powershell
-npm install
 Copy-Item .env.example .env
-npm run db:migrate
+docker compose up -d
+npm install
+npm run db:init
 npm run simulate
 npm test
 ```
 
-The default database is `data/board-game-scheduler.db`. It is ignored by Git.
-The simulator persists a sample guild and planning round, then prints the
-stored round and its candidate dates. It is deliberately Discord-free so it
-can later become the deterministic multi-member test harness.
+The local database runs in Docker. The simulator persists a sample planning
+round and prints it. It is deliberately Discord-free so it can later become the
+deterministic multi-member test harness. Stop MongoDB with `docker compose down`
+(its data is retained); use `docker compose down --volumes` only when you want
+to erase the local database.
 
 ## Project documentation
 
@@ -28,8 +30,6 @@ can later become the deterministic multi-member test harness.
 
 ## Database deployment strategy
 
-Use SQLite for local development, integration tests, and the simulator. For
-AWS deployment, use PostgreSQL (for example Amazon RDS) rather than relying on
-a container-local SQLite file. The TypeScript types come from Drizzle ORM and
-are available with either database; repository interfaces keep the eventual
-database adapter change contained.
+Use MongoDB locally through Docker and in production through MongoDB Atlas M0.
+Keeping the same database technology in both environments is intentional: this
+is a small MVP and does not need a database abstraction layer.

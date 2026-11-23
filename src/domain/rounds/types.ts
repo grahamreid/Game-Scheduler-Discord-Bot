@@ -23,7 +23,7 @@ export interface PlanningRound {
   channelId: string;
   status: RoundStatus;
   title: string | null;
-  availabilityClosesAt: Date | null;
+  availabilityClosesAt: Date;
   selectedDate: string | null;
   selectedHostUserId: string | null;
   finalizedAt: Date | null;
