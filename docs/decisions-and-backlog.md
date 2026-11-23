@@ -3,6 +3,9 @@
 ## Confirmed decisions
 
 - SQLite is the initial local-development database.
+- Production deployment will use PostgreSQL (likely Amazon RDS); SQLite remains
+  for local development, tests, and simulation. Drizzle ORM supplies typed
+  database access for both engines.
 - TypeScript and discord.js are the implementation platform.
 - Availability is a multi-select question and has a scheduled close deadline.
 - The most popular available date wins. An availability tie receives a separate

@@ -6,3 +6,4 @@
 * let's do top 5 instead of top 10, + whatever suggestions people add
 * actual deployment plan?
 * limit or prevent interactivity with the server when not expected
+* availabilityClosedAt should probably be pushed out an hour when tie so the tie can be resolved

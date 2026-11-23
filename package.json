@@ -1,0 +1,26 @@
+{
+  "name": "board-game-scheduler",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "db:migrate": "tsx src/scripts/migrate.ts",
+    "simulate": "tsx src/presentation/cli/simulate.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "discord.js": "^14.17.3",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.38.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
