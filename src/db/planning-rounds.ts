@@ -1,14 +1,18 @@
+/**
+ * Direct MongoDB access for the planning-round document. It stays separate
+ * from availability rules because this file owns persistence mechanics only.
+ */
 import type { Collection } from "mongodb";
 import { randomUUID } from "node:crypto";
-import type { CandidateDate, PlanningRound } from "../types";
+import type { AvailabilityResponse, CandidateDate, PlanningRound } from "../types";
 import { getDatabase } from "./mongo";
 
-/** The data supplied by an administrator when opening a planning round. */
+/** The data supplied when opening a planning round. */
 export interface CreatePlanningRoundInput {
   guildId: string;
   channelId: string;
   title?: string;
-  availabilityClosesAt: Date;
+  deadline: Date;
   candidateDates: Array<{ date: string; displayOrder: number }>;
 }
 
@@ -21,17 +25,28 @@ async function rounds(): Promise<Collection<PlanningRoundDocument>> {
   return (await getDatabase()).collection<PlanningRoundDocument>("planningRounds");
 }
 
+/** Cancels any previous in-progress round for a guild before a newer one opens. */
+async function cancelActiveRoundsForGuild(guildId: string, cancelledAt: Date): Promise<void> {
+  await (await rounds()).updateMany(
+    { guildId, status: "open" },
+    { $set: { status: "cancelled", deadlineProcessedAt: cancelledAt, updatedAt: cancelledAt } },
+  );
+}
+
 /** Creates an open round and assigns stable IDs to its candidate dates. */
 export async function createPlanningRound(input: CreatePlanningRoundInput): Promise<PlanningRoundDocument> {
   const now = new Date();
   const id = randomUUID();
+  await cancelActiveRoundsForGuild(input.guildId, now);
   const round: PlanningRoundDocument = {
     _id: id,
     guildId: input.guildId,
     channelId: input.channelId,
     status: "open",
     title: input.title ?? null,
-    availabilityClosesAt: input.availabilityClosesAt,
+    deadline: input.deadline,
+    deadlineProcessedAt: null,
+    availabilityResponses: [],
     selectedDate: null,
     selectedHostUserId: null,
     finalizedAt: null,
@@ -52,4 +67,53 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
 export async function findPlanningRound(id: string): Promise<PlanningRoundDocument | null> {
   const round = await (await rounds()).findOne({ _id: id });
   return round;
+}
+
+/** Adds one member's response if the round remains open and they have not already responded. */
+export async function appendAvailabilityResponse(
+  roundId: string,
+  response: AvailabilityResponse,
+): Promise<boolean> {
+  const result = await (await rounds()).updateOne(
+    {
+      _id: roundId,
+      status: "open",
+      deadlineProcessedAt: null,
+      deadline: { $gt: response.submittedAt },
+      "availabilityResponses.userId": { $ne: response.userId },
+    },
+    { $push: { availabilityResponses: response } },
+  );
+  return result.modifiedCount === 1;
+}
+
+/** Finds open rounds whose deadline is ready to process. */
+export async function findExpiredRounds(now: Date): Promise<PlanningRoundDocument[]> {
+  return (await rounds()).find({
+    status: "open",
+    deadlineProcessedAt: null,
+    deadline: { $lte: now },
+  }).toArray();
+}
+
+/** Persists a decided availability day while leaving the overall round open. */
+export async function selectAvailabilityDate(
+  roundId: string,
+  date: string,
+  closedAt: Date,
+): Promise<boolean> {
+  const result = await (await rounds()).updateOne(
+    { _id: roundId, status: "open", deadlineProcessedAt: null },
+    { $set: { selectedDate: date, deadlineProcessedAt: closedAt, updatedAt: closedAt } },
+  );
+  return result.modifiedCount === 1;
+}
+
+/** Cancels a round when no candidate date reaches the three-person minimum. */
+export async function cancelForInsufficientAvailability(roundId: string, closedAt: Date): Promise<boolean> {
+  const result = await (await rounds()).updateOne(
+    { _id: roundId, status: "open", deadlineProcessedAt: null },
+    { $set: { status: "cancelled", deadlineProcessedAt: closedAt, updatedAt: closedAt } },
+  );
+  return result.modifiedCount === 1;
 }

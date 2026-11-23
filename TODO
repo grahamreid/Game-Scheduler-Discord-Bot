@@ -6,5 +6,16 @@
 * let's do top 5 instead of top 10, + whatever suggestions people add
 * actual deployment plan?
 * limit or prevent interactivity with the server when not expected
-* availabilityClosedAt should probably be pushed out an hour when tie so the tie can be resolved
 * consolidate this file with decision + backlog
+* ability to delete a round via discord command
+* potential virtual vs in-person logic
+** add command that polls people one time asking their preference between virtual and in-person
+** up front say whether a round is eligible for virtual.
+*** use ratio of virtual prefer people to determine how often a particular round will be eligible for in-person only, or either in-person or virtual
+*** people can choose whether their preference is in-person or virtual for that round (optional selection),
+**** if neither is selected, go with their global preference
+**** this prompt only shows up when the round is eligible for either
+**** if at least one virtual prefer person is present on the round for the decided availability slot (either from that round's preferences or the global), the round will be virtual
+* cancelling and finalizing should both produce a new announcement
+* let someone resubmit their availabilities for a round (new command)
+* once done with this project create an AGENTS.md documenting takeaways in terms of my preferred dev style

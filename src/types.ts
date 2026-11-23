@@ -1,10 +1,9 @@
 /**
- * The few meaningful lifecycle states of a planning round. `open` deliberately
- * covers availability, activity discussion, and host volunteering at once.
+ * Shared data shapes for the entire app. This stays separate from database and
+ * Discord code so both can agree on a planning round's structure.
  */
 export type RoundStatus =
   | "open"
-  | "availability_tiebreak"
   | "finalized"
   | "cancelled";
 
@@ -24,10 +23,29 @@ export interface PlanningRound {
   channelId: string;
   status: RoundStatus;
   title: string | null;
-  availabilityClosesAt: Date;
+  /** The current planning deadline; this MVP uses it to close availability. */
+  deadline: Date;
+  /** Set once the deadline has been processed into a selected day or cancellation. */
+  deadlineProcessedAt: Date | null;
+  /** Immutable, one-time availability submissions made by members for this round. */
+  availabilityResponses: AvailabilityResponse[];
   selectedDate: string | null;
   selectedHostUserId: string | null;
   finalizedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** One member's immutable, multi-select availability response. */
+export interface AvailabilityResponse {
+  userId: string;
+  candidateDateIds: string[];
+  submittedAt: Date;
+}
+
+/** The number of available members for one candidate date. */
+export interface AvailabilityTally {
+  candidateDateId: string;
+  date: string;
+  votes: number;
 }

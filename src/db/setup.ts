@@ -1,3 +1,7 @@
+/**
+ * Database index setup is isolated from connection code so it can run from a
+ * command without being mixed into normal reads and writes.
+ */
 import { getDatabase } from "./mongo";
 
 /**
@@ -12,6 +16,7 @@ export async function ensureDatabaseIndexes(): Promise<void> {
     await planningRounds.dropIndex("planning_round_id");
   }
   await planningRounds.createIndexes([
-    { key: { status: 1, availabilityClosesAt: 1 }, name: "open_round_deadline" },
+    { key: { status: 1, deadline: 1 }, name: "open_round_deadline" },
+    { key: { guildId: 1, status: 1 }, name: "guild_active_round" },
   ]);
 }

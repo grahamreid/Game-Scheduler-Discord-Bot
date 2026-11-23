@@ -1,3 +1,7 @@
+/**
+ * Owns the shared MongoDB client connection. Keeping it here prevents every
+ * database file from independently opening a connection.
+ */
 import "dotenv/config";
 import { Db, MongoClient } from "mongodb";
 

@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "db:init": "tsx src/scripts/init-database.ts",
+    "db:clear-simulations": "tsx src/scripts/clear-simulations.ts",
     "simulate": "tsx src/presentation/cli/simulate.ts",
+    "schedule:process": "tsx src/scripts/process-deadlines.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -10,9 +10,10 @@
 - The code intentionally has no generic database abstraction/repository layer.
 - The MVP uses manual end-to-end validation and simulator scenarios rather than
   unit tests. Repeatable scenarios belong in `docs/simulations/`.
-- Availability is multi-select and has a scheduled close deadline.
-- The most popular date wins. An availability tie receives a separate
-  single-choice tie-breaker poll.
+- Availability is multi-select and uses the round's scheduled deadline.
+- Creating a newer planning round automatically cancels any earlier active
+  round in the same guild.
+- The most popular date wins. A tie selects the chronologically earlier date.
 - Activity suggestions are non-binding discussion input; do not automatically
   select an activity winner.
 - Members may vote for up to three activities and propose one free-text
@@ -30,7 +31,6 @@
 | Idea | Notes |
 | --- | --- |
 | `/activity delete` | Administrative removal/hiding of unwanted or duplicate suggestions. |
-| Tie-break poll | A single-choice prompt used only for an availability tie. |
 | Reminder messages | Consider prompting members before a deadline. |
 | Round cancellation messaging | Needed when turnout is below the minimum. |
 | Recurrence administration | Configure cadence, channel, dates, and deadlines. |
@@ -38,10 +38,11 @@
 
 ## Implementation sequence
 
-1. MongoDB setup, local development, and simulator.
-2. Round lifecycle, deadline processor, availability winner/tie logic.
-3. Discord announcement and availability collection.
-4. Activity suggestions and voting display.
-5. Host volunteering and host-history selection.
-6. Final announcement.
-7. Automated recurring round creation.
+1. Discord announcement, availability collection, and private-server testing.
+2. Activity suggestions and voting display.
+3. Host volunteering and host-history selection.
+4. Final announcement.
+5. Automated recurring round creation.
+6. AWS deployment via EventBridge (or similar), API Gateway, and possibly
+   Lambda.
+7. Live testing and integration with the real server.

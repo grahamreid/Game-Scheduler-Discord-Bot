@@ -22,6 +22,7 @@ MongoDB, and Discord bots.
 ```text
 src/
   db/                 # MongoDB connection, indexes, and direct collection helpers
+  scheduling/         # reusable processing invoked by a command now and a scheduler later
   presentation/       # entry points for people/systems, currently a CLI simulator
   scripts/            # maintenance programs, currently database initialization
   types.ts            # shared application data types
@@ -34,10 +35,14 @@ src/
 | --- | --- |
 | `src/types.ts` | Defines planning-round data and legal states without deciding how it is displayed. |
 | `src/db/mongo.ts` | Opens/reuses the MongoDB connection from `MONGODB_URI`. |
-| `src/db/planning-rounds.ts` | Direct database functions for creating and finding planning rounds. Candidate dates are embedded in the round document. |
+| `src/db/planning-rounds.ts` | Direct database functions for creating rounds and storing their embedded candidate dates and one-time availability submissions. |
 | `src/db/setup.ts` | Creates indexes that make ID and deadline lookups efficient. |
+| `src/availability.ts` | Availability rules: validates one-time submissions, tallies selections, and chooses a winning date. |
+| `src/scheduling/process-deadlines.ts` | Finds expired rounds and applies the availability decision. Kept reusable for a future scheduler. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
-| `src/presentation/cli/simulate.ts` | Discord-free smoke test that writes and prints a sample round. |
+| `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |
+| `src/scripts/clear-simulations.ts` | Program run by `npm run db:clear-simulations`; deletes only simulator-created records. |
+| `src/presentation/cli/simulate.ts` | Discord-free workflow simulation that writes responses, processes a deadline, and prints the result. |
 | `src/index.ts` | Placeholder main entry point for the future Discord interaction handler. |
 
 ## TypeScript terms used here

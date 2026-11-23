@@ -1,3 +1,7 @@
+/**
+ * Command-line entry point that creates required MongoDB indexes. It exists so
+ * developers can prepare a new local database without running a simulation.
+ */
 import { closeDatabase } from "../db/mongo";
 import { ensureDatabaseIndexes } from "../db/setup";
 
