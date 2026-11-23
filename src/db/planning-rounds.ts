@@ -1,6 +1,6 @@
 import type { Collection } from "mongodb";
 import { randomUUID } from "node:crypto";
-import type { CandidateDate, PlanningRound } from "../domain/rounds/types";
+import type { CandidateDate, PlanningRound } from "../types";
 import { getDatabase } from "./mongo";
 
 /** The data supplied by an administrator when opening a planning round. */

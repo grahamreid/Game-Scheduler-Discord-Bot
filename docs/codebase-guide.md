@@ -23,9 +23,9 @@ MongoDB, and Discord bots.
 ```text
 src/
   db/                 # MongoDB connection, indexes, and direct collection helpers
-  domain/             # business vocabulary such as planning-round types
   presentation/       # entry points for people/systems, currently a CLI simulator
   scripts/            # maintenance programs, currently database initialization
+  types.ts            # shared application data types
   index.ts            # eventual normal Discord application entry point
 ```
 
@@ -33,7 +33,7 @@ src/
 
 | File | Purpose |
 | --- | --- |
-| `src/domain/rounds/types.ts` | Defines planning-round data and legal states without deciding how it is displayed. |
+| `src/types.ts` | Defines planning-round data and legal states without deciding how it is displayed. |
 | `src/db/mongo.ts` | Opens/reuses the MongoDB connection from `MONGODB_URI`. |
 | `src/db/planning-rounds.ts` | Direct database functions for creating and finding planning rounds. Candidate dates are embedded in the round document. |
 | `src/db/setup.ts` | Creates indexes that make ID and deadline lookups efficient. |
