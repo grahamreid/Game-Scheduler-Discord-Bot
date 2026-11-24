@@ -84,12 +84,16 @@ async function handleCreateRound(interaction: ChatInputCommandInteraction): Prom
     const deadlineDuration = interaction.options.getString("deadline") ?? settings.defaultDeadline;
     const daysAhead = interaction.options.getInteger("days-ahead") ?? daysForCadence(settings.cadence);
     const splitWeekendSlots = interaction.options.getBoolean("split-weekends") ?? settings.splitWeekendSlots;
+    const slots = generateRoundSlots(new Date(), daysAhead, splitWeekendSlots);
+    if (slots.length > 25) {
+      throw new Error(`Those options produce ${slots.length} slots; Discord's current select menu supports at most 25. Use fewer days or do not split weekends.`);
+    }
     const round = await createPlanningRound({
       guildId: interaction.guildId!,
       channelId: interaction.channelId,
       title: interaction.options.getString("title") ?? undefined,
       deadline: parseDeadline(deadlineDuration),
-      slots: generateRoundSlots(new Date(), daysAhead, splitWeekendSlots),
+      slots,
     });
     if (interaction.channel === null || !interaction.channel.isSendable()) throw new Error("Run this command in a text channel.");
     await interaction.channel.send(buildAvailabilityMessage(round));

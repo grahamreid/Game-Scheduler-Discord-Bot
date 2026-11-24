@@ -150,8 +150,9 @@ Then a minimal manual round is:
 
 It offers the Monday after today through the following Sunday for weekly
 cadence, or through the second Sunday for biweekly cadence. Use the optional
-`days-ahead` (7 or 14) and `split-weekends` arguments to override those defaults
-for one round.
+`days-ahead` (1–25) and `split-weekends` arguments to override those defaults
+for one round. The current Discord select menu permits at most 25 total slot
+options, so a weekend split may reduce the usable maximum range.
 
 The launch-time setting accepts these common US abbreviations and stores their
 IANA equivalents for a future scheduler: `ET`/`EST`/`EDT` → `America/New_York`,

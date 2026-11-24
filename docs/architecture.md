@@ -96,9 +96,13 @@ IANA timezone (`America/New_York` or `America/Chicago`). A manual
 round does not wait for that first date or launch time: `/round create` starts
 immediately and treats the current day as its scheduled survey date, then
 generates slots beginning on the following Monday. Its default range comes from
-the configured cadence, but the command can override the range (7 or 14 days)
-and weekend split for that one round. If its `deadline` argument is omitted, it
+the configured cadence, but the command can override the range (from 1 to 25
+days) and weekend split for that one round. If its `deadline` argument is omitted, it
 uses the configured default deadline.
+
+Discord's current select menu can show at most 25 options. A weekend split adds
+two choices for each weekend day, so manual creation rejects any requested
+range that would exceed that limit.
 
 Generated labels are date-first, such as `2026-11-30 (Monday)` or
 `2026-12-05 (Saturday Afternoon)`, so alphabetical ordering is chronological.

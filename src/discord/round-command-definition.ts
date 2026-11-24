@@ -13,7 +13,7 @@ export const roundCommand = new SlashCommandBuilder()
     .setDescription("Create a board-game planning round")
     .addStringOption((option) => option.setName("deadline").setDescription("Optional time from now; uses the guild default when omitted, e.g. 1h").setRequired(false))
     .addStringOption((option) => option.setName("title").setDescription("Optional title for this planning round").setRequired(false))
-    .addIntegerOption((option) => option.setName("days-ahead").setDescription("Optional 7- or 14-day slot window; defaults to the guild cadence").addChoices({ name: "Weekly (7 days)", value: 7 }, { name: "Biweekly (14 days)", value: 14 }).setRequired(false))
+    .addIntegerOption((option) => option.setName("days-ahead").setDescription("Optional number of days to offer; defaults to the guild cadence").setMinValue(1).setMaxValue(25).setRequired(false))
     .addBooleanOption((option) => option.setName("split-weekends").setDescription("Split Saturday and Sunday into Afternoon and Evening slots").setRequired(false)))
   .addSubcommand((subcommand) => subcommand
     .setName("initialize-settings")
