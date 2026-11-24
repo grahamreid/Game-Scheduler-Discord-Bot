@@ -68,6 +68,11 @@ export async function findPlanningRound(id: string): Promise<PlanningRoundDocume
   return round;
 }
 
+/** Finds the one current round for a guild, if that guild is planning one. */
+export async function findOpenPlanningRound(guildId: string): Promise<PlanningRoundDocument | null> {
+  return (await rounds()).findOne({ guildId, status: "open" }, { sort: { createdAt: -1 } });
+}
+
 /**
  * Removes every round belonging to one guild and its dependent availability
  * responses. Call this only after an administrator has explicitly confirmed.

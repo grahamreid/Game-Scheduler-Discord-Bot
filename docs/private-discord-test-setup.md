@@ -131,5 +131,5 @@ Server** can run:
 ```
 
 The command replies privately with the newly created round ID and posts a shared
-availability menu in the channel. Each member may select one or more slots once;
-their confirmation is visible only to them.
+availability menu in the channel. Each member may select one or more slots and
+re-submit before the deadline; their confirmation is visible only to them.

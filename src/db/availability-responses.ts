@@ -24,3 +24,8 @@ export async function saveAvailabilityResponse(response: AvailabilityResponse): 
 export async function findAvailabilityResponses(roundId: string): Promise<AvailabilityResponse[]> {
   return (await responses()).find({ roundId }).toArray();
 }
+
+/** Counts submitted member responses without loading every response document. */
+export async function countAvailabilityResponses(roundId: string): Promise<number> {
+  return (await responses()).countDocuments({ roundId });
+}

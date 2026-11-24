@@ -30,3 +30,4 @@
 * pooky themed responses / messages
 * command to immediately close current round
 * don't send completion confirmation until all inputs are filled out. Can we put that all in one message?
+* we should make the final announcement list who, where, when, and the game selection results

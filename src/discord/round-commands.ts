@@ -11,7 +11,8 @@ import {
   PermissionsBitField,
   SlashCommandBuilder,
 } from "discord.js";
-import { createPlanningRound, wipeGuildRounds } from "../db/planning-rounds";
+import { findAvailabilityResponses } from "../db/availability-responses";
+import { createPlanningRound, findOpenPlanningRound, wipeGuildRounds } from "../db/planning-rounds";
 import { buildAvailabilityMessage } from "./availability-menu";
 
 export const roundCommand = new SlashCommandBuilder()
@@ -35,7 +36,10 @@ export const roundCommand = new SlashCommandBuilder()
       .setRequired(false)))
   .addSubcommand((subcommand) => subcommand
     .setName("wipe")
-    .setDescription("Permanently delete this server's planning rounds after confirmation"));
+    .setDescription("Permanently delete this server's planning rounds after confirmation"))
+  .addSubcommand((subcommand) => subcommand
+    .setName("status")
+    .setDescription("Show the current planning round and availability response count"));
 
     function parseDeadline(value: string): Date {
   const match = /^(\d+)(m|h|d)$/i.exec(value.trim());
@@ -70,6 +74,37 @@ export async function handleRoundCommand(interaction: ChatInputCommandInteractio
     return;
   }
   if (interaction.guildId === null) return;
+
+  if (interaction.options.getSubcommand() === "status") {
+    await interaction.deferReply({ ephemeral: true });
+    try {
+      const round = await findOpenPlanningRound(interaction.guildId);
+      if (round === null) {
+        await interaction.editReply("There is no open planning round for this server.");
+        return;
+      }
+      const responses = await findAvailabilityResponses(round._id);
+      const responderNames = await Promise.all(responses.map(async (response) => {
+        try {
+          // Fetch the guild member so status uses their current server display name.
+          return (await interaction.guild!.members.fetch(response.userId)).displayName;
+        } catch {
+          // A response can outlive a member leaving the server; retain useful context.
+          return `Unknown member (${response.userId})`;
+        }
+      }));
+      const title = round.title ?? "Board-game Scheduling";
+      const availabilityStatus = round.deadlineProcessedAt === null
+        ? `Open until <t:${Math.floor(round.deadline.getTime() / 1000)}:R>`
+        : `Closed; selected slot: **${round.selectedSlot ?? "none"}**`;
+      await interaction.editReply(
+        `**${title}**\n${availabilityStatus}\nSlots: ${round.candidateSlots.map((slot) => slot.value).join(", ")}\nAvailability responses (${responses.length}): ${responderNames.join(", ") || "none"}`,
+      );
+    } catch {
+      await interaction.editReply("Could not retrieve the current planning round.");
+    }
+    return;
+  }
 
   if (interaction.options.getSubcommand() === "wipe") {
     const confirmationId = `${wipeConfirmPrefix}${interaction.guildId}:${interaction.user.id}`;
