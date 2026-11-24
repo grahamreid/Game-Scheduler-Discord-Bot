@@ -38,7 +38,7 @@
 
 ## Implementation sequence
 
-1. Discord announcement, availability collection, and private-server testing.
+1. Discord announcement / integration, and private-server testing.
 2. Activity suggestions and voting display.
 3. Host volunteering and host-history selection.
 4. Final announcement.
