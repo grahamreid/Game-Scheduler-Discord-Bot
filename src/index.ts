@@ -5,8 +5,9 @@
 import "dotenv/config";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { ensureDatabaseIndexes } from "./db/setup";
+import { handleAdminRoundCommand, handleRoundWipeButton } from "./discord/admin-round-commands";
 import { handleAvailabilityMenu } from "./discord/availability-menu";
-import { handleRoundCommand, handleRoundWipeButton, roundCommand } from "./discord/round-commands";
+import { roundCommand } from "./discord/round-command-definition";
 
 const token = process.env.DISCORD_TOKEN;
 const testGuildId = process.env.DISCORD_TEST_GUILD_ID;
@@ -25,7 +26,7 @@ client.once(Events.ClientReady, async (readyClient) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand() && interaction.commandName === "round") {
-    await handleRoundCommand(interaction);
+    await handleAdminRoundCommand(interaction);
   } else if (interaction.isStringSelectMenu()) {
     await handleAvailabilityMenu(interaction);
   } else if (interaction.isButton()) {

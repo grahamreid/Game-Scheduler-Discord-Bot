@@ -17,6 +17,8 @@ export async function ensureDatabaseIndexes(): Promise<void> {
   const availabilityResponses = database.collection("availabilityResponses");
   await ensureIndex(availabilityResponses, "one_response_per_member_per_round", { roundId: 1, userId: 1 }, true);
   await ensureIndex(availabilityResponses, "responses_by_round", { roundId: 1 });
+  const guildSchedulingSettings = database.collection("guildSchedulingSettings");
+  await ensureIndex(guildSchedulingSettings, "one_scheduling_setting_per_guild", { guildId: 1 }, true);
 }
 
 /** Replaces an outdated named index instead of letting an old local schema block startup. */

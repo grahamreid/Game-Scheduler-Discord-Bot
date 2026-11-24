@@ -38,10 +38,15 @@ src/
 | `src/db/mongo.ts` | Opens/reuses the MongoDB connection from `MONGODB_URI`. |
 | `src/db/planning-rounds.ts` | Direct database functions for creating, finding, and closing planning rounds, including their embedded candidate slots. |
 | `src/db/availability-responses.ts` | Direct database functions for each member's current availability response; kept separate so a later submission can replace it. |
+| `src/db/guild-scheduling-settings.ts` | Stores cadence, initial survey date/time and IANA timezone, deadline, and weekend-splitting defaults per Discord server. |
 | `src/db/setup.ts` | Creates indexes that make ID and deadline lookups efficient. |
-| `src/discord/round-commands.ts` | Defines `/round create`, validates its input, checks Discord's Manage Server permission, and creates a planning round. |
+| `src/discord/constants.ts` | Holds Discord component-ID prefixes and the shared US-timezone abbreviation mapping. |
+| `src/discord/command-parsers.ts` | Validates and normalizes slash-command text before an administrator handler writes data. |
+| `src/discord/round-command-definition.ts` | Declares the `/round` command and its options for Discord's command picker. |
+| `src/discord/admin-round-commands.ts` | Routes and handles administrator `/round` commands, including create, configuration, status, and destructive wipe confirmation. |
 | `src/discord/availability-menu.ts` | Builds the shared slot menu and handles each member's individual selection. Kept separate because component interactions differ from slash commands. |
 | `src/availability.ts` | Availability rules: validates current submissions, tallies selections, and chooses a winning slot. |
+| `src/slot-generation.ts` | Calendar-only logic that turns a scheduled survey date and options into dated availability slot labels. Kept separate so manual and future automated round creation use identical rules. |
 | `src/scheduling/close-round.ts` | Closes one round's availability and also offers a reusable loop for rounds whose deadlines have passed. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |

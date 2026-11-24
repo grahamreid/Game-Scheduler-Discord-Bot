@@ -12,6 +12,26 @@ export interface CandidateSlot {
   value: string;
 }
 
+/** The supported intervals between planned events for one Discord guild. */
+export type RoundCadence = "weekly" | "biweekly";
+
+/** Per-guild settings used to generate dated availability slots. */
+export interface GuildSchedulingSettings {
+  guildId: string;
+  cadence: RoundCadence;
+  /** Calendar date of the first survey that automatic scheduling will create. */
+  firstSurveyDate: string;
+  /** Configured local clock time for future automated rounds. */
+  surveyLaunchTime: string;
+  /** IANA timezone derived from the administrator's friendly abbreviation. */
+  surveyTimeZone: string;
+  /** Duration from launch until the round's availability deadline, such as 7h. */
+  defaultDeadline: string;
+  splitWeekendSlots: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 /** The persisted state of one board-game scheduling process. */
 export interface PlanningRound {
   /** MongoDB's built-in, indexed identifier for this round. */

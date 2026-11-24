@@ -52,6 +52,10 @@ planningRounds
   candidateSlots: [ { value } ],
   selectedSlot, selectedHostUserId, finalizedAt, createdAt, updatedAt
 
+guildSchedulingSettings
+  guildId, cadence, firstSurveyDate, surveyLaunchTime, surveyTimeZone, defaultDeadline,
+  splitWeekendSlots, createdAt, updatedAt
+
 availabilityResponses
   roundId, userId, slots, submittedAt
 
@@ -81,6 +85,29 @@ each document is a member's current answer for one round, and its unique
 `roundId` + `userId` index lets the bot replace that answer when the member
 submits the menu again. Other collections remain separate because they will be
 updated independently by many Discord members.
+
+`guildSchedulingSettings` stores each server's `weekly` or `biweekly` cadence,
+the calendar date on which future automated survey creation should begin, and
+whether weekend days become separate Afternoon and Evening choices. It also
+stores the future survey launch time and IANA timezone, plus its default
+deadline duration (for example `7h`). Administrators provide a friendly common
+US abbreviation such as `5:00 PM ET` or `17:00 CT`; the bot stores its mapped
+IANA timezone (`America/New_York` or `America/Chicago`). A manual
+round does not wait for that first date or launch time: `/round create` starts
+immediately and treats the current day as its scheduled survey date, then
+generates slots beginning on the following Monday. Its default range comes from
+the configured cadence, but the command can override the range (7 or 14 days)
+and weekend split for that one round. If its `deadline` argument is omitted, it
+uses the configured default deadline.
+
+Generated labels are date-first, such as `2026-11-30 (Monday)` or
+`2026-12-05 (Saturday Afternoon)`, so alphabetical ordering is chronological.
+Weekdays represent evenings implicitly; no time is assigned yet.
+
+`/round create` is intentionally blocked until a guild has run
+`/round initialize-settings`. Every round therefore has configured cadence,
+weekend-splitting, and deadline defaults; per-round arguments may override
+those values.
 
 Dates such as an event day are `YYYY-MM-DD` strings in the guild's timezone.
 Deadlines and audit fields are MongoDB `Date` values, which represent UTC

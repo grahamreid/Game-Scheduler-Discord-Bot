@@ -29,6 +29,9 @@
   cancellation behavior will be defined with workflow implementation).
 - `/round wipe` is administrator-only, confirms through a private Discord
   button, and deletes only the current guild's rounds and availability data.
+- Guild scheduling settings support `weekly` and `biweekly` cadence, a first
+  automated-survey date/time, a default availability deadline, and an optional
+  weekend Afternoon/Evening split. Manual round creation starts immediately.
 
 ## Deferred Discord commands/features
 
@@ -38,6 +41,8 @@
 | Reminder messages | Consider prompting members before a deadline. |
 | Round cancellation messaging | Needed when turnout is below the minimum. |
 | Recurrence administration | Configure cadence, channel, slots, and deadlines. |
+| Monthly cadence | Requires an explicit calendar rule (for example, same day-of-month or nth weekday), behavior for months without that date, and a guild timezone. It cannot safely reuse the fixed 7/14-day calculation. |
+| More timezone mappings | Initial setup maps ET/EST/EDT, CT/CST/CDT, MT/MST/MDT, and PT/PST/PDT to IANA zones. Add other regions or direct IANA-zone selection as needed. |
 | AWS deployment | Lambda/API Gateway/EventBridge after local workflow is proven. |
 
 ## Implementation sequence

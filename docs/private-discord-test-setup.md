@@ -127,9 +127,33 @@ does not need a public URL. In `#board-game-test`, a member with **Manage
 Server** can run:
 
 ```text
-/round create deadline:1h slots:Friday,Saturday title:Test night
+/round create deadline:1h title:Test round
 ```
 
 The command replies privately with the newly created round ID and posts a shared
 availability menu in the channel. Each member may select one or more slots and
 re-submit before the deadline; their confirmation is visible only to them.
+
+Before creating recurring-style rounds, an administrator can save the guild's
+defaults (the first date is for future automated creation; manual creation uses
+today as its survey date):
+
+```text
+/round initialize-settings cadence:biweekly first-survey-date:2026-12-03 survey-launch-time:5:00 PM ET default-deadline:7h split-weekends:True
+```
+
+Then a minimal manual round is:
+
+```text
+/round create
+```
+
+It offers the Monday after today through the following Sunday for weekly
+cadence, or through the second Sunday for biweekly cadence. Use the optional
+`days-ahead` (7 or 14) and `split-weekends` arguments to override those defaults
+for one round.
+
+The launch-time setting accepts these common US abbreviations and stores their
+IANA equivalents for a future scheduler: `ET`/`EST`/`EDT` → `America/New_York`,
+`CT`/`CST`/`CDT` → `America/Chicago`, `MT`/`MST`/`MDT` → `America/Denver`, and
+`PT`/`PST`/`PDT` → `America/Los_Angeles`.

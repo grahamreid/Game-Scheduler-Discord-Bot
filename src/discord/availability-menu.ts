@@ -10,15 +10,15 @@ import {
 } from "discord.js";
 import { submitAvailability } from "../availability";
 import type { PlanningRoundDocument } from "../db/planning-rounds";
+import { availabilityCustomIdPrefix } from "./constants";
 
-const customIdPrefix = "availability:";
 /** Builds the shared message content and multi-select component for one round. */
 export function buildAvailabilityMessage(round: PlanningRoundDocument): {
   content: string;
   components: ActionRowBuilder<StringSelectMenuBuilder>[];
 } {
   const menu = new StringSelectMenuBuilder()
-    .setCustomId(`${customIdPrefix}${round._id}`)
+    .setCustomId(`${availabilityCustomIdPrefix}${round._id}`)
     .setPlaceholder("Select every slot that works for you")
     .setMinValues(1)
     .setMaxValues(round.candidateSlots.length)
@@ -34,8 +34,8 @@ export function buildAvailabilityMessage(round: PlanningRoundDocument): {
 
 /** Saves a member's selection from the shared menu and replies only to them. */
 export async function handleAvailabilityMenu(interaction: StringSelectMenuInteraction): Promise<void> {
-  if (!interaction.customId.startsWith(customIdPrefix)) return;
-  const roundId = interaction.customId.slice(customIdPrefix.length);
+  if (!interaction.customId.startsWith(availabilityCustomIdPrefix)) return;
+  const roundId = interaction.customId.slice(availabilityCustomIdPrefix.length);
   await interaction.deferReply({ ephemeral: true }); // NOTE Shows up as "thinking..." to the user while we process their selection.
   try {
     await submitAvailability(roundId, interaction.user.id, interaction.values);
