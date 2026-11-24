@@ -1,8 +1,7 @@
 # Board Game Scheduler
 
-A Discord bot for organizing recurring board-game scheduling. The current milestone
-sets up MongoDB persistence and a local simulator; Discord interactions are the
-next milestone.
+A Discord bot for organizing recurring board-game scheduling. The current
+milestone supports local MongoDB plus Discord-based end-to-end testing.
 
 ## Local setup
 
@@ -43,11 +42,11 @@ cp .env.example .env
 ```sh
 npm install
 npm run db:init
-npm run simulate
+npm run dev
 ```
 
-The simulator persists a sample planning round and prints it. It is deliberately
-Discord-free so it can later become the deterministic multi-member test harness.
+With the bot running, use the private Discord server setup guide and exercise
+the workflow through Discord commands and menus.
 
 ## Project documentation
 
@@ -63,6 +62,5 @@ is a small MVP and does not need a database abstraction layer.
 
 ## Validation approach
 
-This MVP deliberately uses simulations and manual end-to-end checks instead of
-unit tests. As each workflow is built, its repeatable validation steps will be
-added to `docs/simulations/` so you can run and inspect the same scenarios.
+This MVP deliberately uses Discord-based end-to-end checks rather than local
+simulation or unit tests. Unit tests can be added later for the business logic.

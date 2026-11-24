@@ -24,8 +24,7 @@ src/
   db/                 # MongoDB connection, indexes, and direct collection helpers
   discord/            # command definitions and interaction handlers
   scheduling/         # reusable processing invoked by a command now and a scheduler later
-  presentation/       # entry points for people/systems, currently a CLI simulator
-  scripts/            # maintenance programs, currently database initialization
+  scripts/            # maintenance programs, currently database initialization and closing rounds
   types.ts            # shared application data types
   index.ts            # eventual normal Discord application entry point
 ```
@@ -50,8 +49,6 @@ src/
 | `src/scheduling/close-round.ts` | Closes one round's availability and also offers a reusable loop for rounds whose deadlines have passed. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |
-| `src/scripts/clear-simulations.ts` | Program run by `npm run db:clear-simulations`; deletes only simulator-created records. |
-| `src/presentation/cli/simulate.ts` | Discord-free workflow simulation that writes responses, processes a deadline, and prints the result. |
 | `src/index.ts` | Starts the local Discord Gateway bot and registers test-guild commands. It is a long-running bot process, not an HTTP server. |
 
 ## TypeScript terms used here
@@ -98,7 +95,7 @@ until the bot has proven its needs.
 
 ## Validation approach
 
-We are intentionally not maintaining unit tests during the MVP. Instead, each
-feature receives a manual end-to-end scenario in `docs/simulations/`. A
-scenario will state the commands to run, the simulated members/actions, and the
-MongoDB queries or Discord messages that demonstrate the expected result.
+We are intentionally not maintaining unit tests during the MVP. Features are
+validated through Discord commands and interactions in the private test server.
+Later, focused unit tests can cover business logic without replacing that
+end-to-end validation.

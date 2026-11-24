@@ -139,7 +139,7 @@ defaults (the first date is for future automated creation; manual creation uses
 today as its survey date):
 
 ```text
-/round initialize-settings cadence:biweekly first-survey-date:2026-12-03 survey-launch-time:5:00 PM ET default-deadline:7h split-weekends:True
+/round initialize-settings cadence:biweekly first-survey-date:2026-12-03 survey-launch-time:5:00 PM ET default-deadline:7h minimum-attendees:3 split-weekends:True
 ```
 
 Then a minimal manual round is:

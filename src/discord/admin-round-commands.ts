@@ -43,9 +43,10 @@ async function handleInitializeSettings(interaction: ChatInputCommandInteraction
     const launchTime = parseSurveyLaunchTime(interaction.options.getString("survey-launch-time", true));
     const defaultDeadline = interaction.options.getString("default-deadline", true);
     parseDeadline(defaultDeadline);
+    const minimumAttendeeCount = interaction.options.getInteger("minimum-attendees", true);
     const splitWeekendSlots = interaction.options.getBoolean("split-weekends", true);
-    await saveGuildSchedulingSettings(interaction.guildId!, cadence, firstSurveyDate, launchTime.time, launchTime.timeZone, defaultDeadline, splitWeekendSlots);
-    await interaction.reply({ content: `Saved ${cadence} defaults beginning ${firstSurveyDate} at ${launchTime.time} (${launchTime.timeZone}); availability closes ${defaultDeadline} after launch and weekend splitting is ${splitWeekendSlots ? "on" : "off"}.`, ephemeral: true });
+    await saveGuildSchedulingSettings(interaction.guildId!, cadence, firstSurveyDate, launchTime.time, launchTime.timeZone, defaultDeadline, minimumAttendeeCount, splitWeekendSlots);
+    await interaction.reply({ content: `Saved ${cadence} defaults beginning ${firstSurveyDate} at ${launchTime.time} (${launchTime.timeZone}); availability closes ${defaultDeadline} after launch, ${minimumAttendeeCount} attendees are required, and weekend splitting is ${splitWeekendSlots ? "on" : "off"}.`, ephemeral: true });
   } catch (error) {
     await interaction.reply({ content: error instanceof Error ? error.message : "Could not save scheduling defaults.", ephemeral: true });
   }
@@ -69,7 +70,7 @@ async function handleRoundStatus(interaction: ChatInputCommandInteraction): Prom
     const availabilityStatus = round.deadlineProcessedAt === null
       ? `Open until <t:${Math.floor(round.deadline.getTime() / 1000)}:R>`
       : `Closed; selected slot: **${round.selectedSlot ?? "none"}**`;
-    await interaction.editReply(`**${title}**\n${availabilityStatus}\nSlots: ${round.candidateSlots.map((slot) => slot.value).join(", ")}\nAvailability responses (${responses.length}): ${responderNames.join(", ") || "none"}`);
+    await interaction.editReply(`**${title}**\n${availabilityStatus}\nMinimum attendees: ${round.minimumAttendeeCount}\nSlots: ${round.candidateSlots.map((slot) => slot.value).join(", ")}\nAvailability responses (${responses.length}): ${responderNames.join(", ") || "none"}`);
   } catch {
     await interaction.editReply("Could not retrieve the current planning round.");
   }
@@ -81,6 +82,9 @@ async function handleCreateRound(interaction: ChatInputCommandInteraction): Prom
     await interaction.deferReply({ ephemeral: true });
     const settings = await findGuildSchedulingSettings(interaction.guildId!);
     if (settings === null) throw new Error("Run /round initialize-settings before creating a round for this server.");
+    if (!Number.isSafeInteger(settings.minimumAttendeeCount) || settings.minimumAttendeeCount < 1) {
+      throw new Error("Run /round initialize-settings again to configure a valid minimum attendee count.");
+    }
     const deadlineDuration = interaction.options.getString("deadline") ?? settings.defaultDeadline;
     const daysAhead = interaction.options.getInteger("days-ahead") ?? daysForCadence(settings.cadence);
     const splitWeekendSlots = interaction.options.getBoolean("split-weekends") ?? settings.splitWeekendSlots;
@@ -93,6 +97,7 @@ async function handleCreateRound(interaction: ChatInputCommandInteraction): Prom
       channelId: interaction.channelId,
       title: interaction.options.getString("title") ?? undefined,
       deadline: parseDeadline(deadlineDuration),
+      minimumAttendeeCount: settings.minimumAttendeeCount,
       slots,
     });
     if (interaction.channel === null || !interaction.channel.isSendable()) throw new Error("Run this command in a text channel.");

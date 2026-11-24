@@ -21,7 +21,12 @@ export interface RoundClosingResult {
 /** Determines and persists the availability outcome for one open round. */
 export async function closeRound(round: PlanningRoundDocument, closedAt = new Date()): Promise<RoundClosingResult> {
   const responses = await findAvailabilityResponses(round._id);
-  const decision = determineWinningSlot(round.candidateSlots, responses);
+  // Old local rounds predate configurable thresholds; retain the original
+  // three-person behavior for them instead of accidentally accepting zero.
+  const minimumAttendeeCount = Number.isSafeInteger(round.minimumAttendeeCount) && round.minimumAttendeeCount > 0
+    ? round.minimumAttendeeCount
+    : 3;
+  const decision = determineWinningSlot(round.candidateSlots, responses, minimumAttendeeCount);
   const applied = decision.kind === "selected"
     ? await selectAvailabilitySlot(round._id, decision.slot, closedAt)
     : await cancelForInsufficientAvailability(round._id, closedAt);

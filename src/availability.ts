@@ -1,6 +1,6 @@
 /**
  * Availability-specific rules live here instead of the database file so they
- * can be read as plain business logic and reused by Discord and simulations.
+ * can be read as plain business logic and reused by Discord handlers and future tests.
  */
 import type { AvailabilityResponse, AvailabilityTally, CandidateSlot } from "./types";
 import { saveAvailabilityResponse } from "./db/availability-responses";
@@ -12,12 +12,13 @@ export type AvailabilityDecision =
 
 /**
  * Tallies multi-select availability and determines the next workflow step.
- * A game night requires at least three available people. A tie selects the
- * alphabetically first slot, avoiding a second interaction round.
+ * A round requires its configured minimum number of available people. A tie
+ * selects the alphabetically first slot, avoiding a second interaction round.
  */
 export function determineWinningSlot(
   candidateSlots: CandidateSlot[],
   responses: AvailabilityResponse[],
+  minimumAttendeeCount: number,
 ): AvailabilityDecision {
   const talliesBySlot = new Map(candidateSlots.map((candidate) => [
     candidate.value,
@@ -32,7 +33,7 @@ export function determineWinningSlot(
 
   const tallies = [...talliesBySlot.values()];
   const attendeeCount = Math.max(0, ...tallies.map((tally) => tally.votes));
-  if (attendeeCount < 3) return { kind: "cancelled", attendeeCount, tallies };
+  if (attendeeCount < minimumAttendeeCount) return { kind: "cancelled", attendeeCount, tallies };
 
   const winner = tallies
     .filter((tally) => tally.votes === attendeeCount)

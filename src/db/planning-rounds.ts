@@ -13,6 +13,7 @@ export interface CreatePlanningRoundInput {
   channelId: string;
   title?: string;
   deadline: Date;
+  minimumAttendeeCount: number;
   slots: string[];
 }
 
@@ -49,6 +50,7 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     title: input.title ?? null,
     deadline: input.deadline,
     deadlineProcessedAt: null,
+    minimumAttendeeCount: input.minimumAttendeeCount,
     selectedSlot: null,
     selectedHostUserId: null,
     finalizedAt: null,
@@ -111,7 +113,7 @@ export async function selectAvailabilitySlot(
   return result.modifiedCount === 1;
 }
 
-/** Cancels a round when no candidate date reaches the three-person minimum. */
+/** Cancels a round when no candidate slot reaches its configured attendance minimum. */
 export async function cancelForInsufficientAvailability(roundId: string, closedAt: Date): Promise<boolean> {
   const result = await (await rounds()).updateOne(
     { _id: roundId, status: "open", deadlineProcessedAt: null },

@@ -24,13 +24,14 @@ export async function saveGuildSchedulingSettings(
   surveyLaunchTime: string,
   surveyTimeZone: string,
   defaultDeadline: string,
+  minimumAttendeeCount: number,
   splitWeekendSlots: boolean,
 ): Promise<void> {
   const now = new Date();
   await (await schedulingSettings()).updateOne(
     { guildId },
     {
-      $set: { cadence, firstSurveyDate, surveyLaunchTime, surveyTimeZone, defaultDeadline, splitWeekendSlots, updatedAt: now },
+      $set: { cadence, firstSurveyDate, surveyLaunchTime, surveyTimeZone, defaultDeadline, minimumAttendeeCount, splitWeekendSlots, updatedAt: now },
       $setOnInsert: { guildId, createdAt: now },
     },
     { upsert: true },

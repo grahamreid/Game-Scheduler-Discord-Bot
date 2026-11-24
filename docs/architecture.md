@@ -7,7 +7,7 @@ database abstraction or repository layer: this is a small, single-purpose bot
 and MongoDB is the selected production database as well as the local one.
 
 ```text
-Discord interaction or local simulator
+Discord interaction
                  |
                  v
        small application functions
@@ -50,11 +50,11 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 planningRounds
   _id, guildId, channelId, status, title, deadline, deadlineProcessedAt,
   candidateSlots: [ { value } ],
-  selectedSlot, selectedHostUserId, finalizedAt, createdAt, updatedAt
+  minimumAttendeeCount, selectedSlot, selectedHostUserId, finalizedAt, createdAt, updatedAt
 
 guildSchedulingSettings
   guildId, cadence, firstSurveyDate, surveyLaunchTime, surveyTimeZone, defaultDeadline,
-  splitWeekendSlots, createdAt, updatedAt
+  minimumAttendeeCount, splitWeekendSlots, createdAt, updatedAt
 
 availabilityResponses
   roundId, userId, slots, submittedAt
@@ -100,6 +100,11 @@ the configured cadence, but the command can override the range (from 1 to 25
 days) and weekend split for that one round. If its `deadline` argument is omitted, it
 uses the configured default deadline.
 
+The setting also supplies `minimumAttendeeCount`: the number of members who
+must be available in a single slot for a round to proceed. That number is
+copied to the planning round at creation, so changing guild settings later does
+not alter the outcome rule of an already-open poll.
+
 Discord's current select menu can show at most 25 options. A weekend split adds
 two choices for each weekend day, so manual creation rejects any requested
 range that would exceed that limit.
@@ -131,14 +136,15 @@ again before the deadline, replacing their current answer. Counts are calculated
 when the deadline closes. With a small group this is inexpensive and preserves
 the data needed for attendance and host eligibility.
 
-- Three or more members available in one or more slots: save the most popular
-  slot, choosing the alphabetically earlier slot when counts tie, and set
+- At least the round's configured minimum number of members available in one or
+  more slots: save the most popular slot, choosing the alphabetically earlier
+  slot when counts tie, and set
   `deadlineProcessedAt`.
-- Fewer than three members in every slot: cancel the round.
+- Fewer members than the configured minimum in every slot: cancel the round.
 
 ## Local verification
 
 Either native MongoDB Community Server or Docker Compose runs MongoDB locally.
-The simulator uses the connection string from `.env`, which works with either
+The Discord bot uses the connection string from `.env`, which works with either
 choice. MongoDB Atlas M0 is the intended initial production option; it has a
 free tier suitable for this bot.

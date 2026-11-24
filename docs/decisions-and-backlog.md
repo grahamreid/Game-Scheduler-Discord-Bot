@@ -8,8 +8,8 @@
 - Local MongoDB supports either native MongoDB Community Server or Docker
   Compose; both use the same local connection string.
 - The code intentionally has no generic database abstraction/repository layer.
-- The MVP uses manual end-to-end validation and simulator scenarios rather than
-  unit tests. Repeatable scenarios belong in `docs/simulations/`.
+- The MVP uses manual end-to-end validation through the private Discord server.
+  Unit tests will be added later for programmatic validation.
 - Availability is multi-select and uses the round's scheduled deadline. A
   member may re-submit the shared menu before the deadline; their latest
   response replaces their earlier one.
@@ -31,7 +31,9 @@
   button, and deletes only the current guild's rounds and availability data.
 - Guild scheduling settings support `weekly` and `biweekly` cadence, a first
   automated-survey date/time, a default availability deadline, and an optional
-  weekend Afternoon/Evening split. Manual round creation starts immediately.
+  weekend Afternoon/Evening split. They also define the minimum number of
+  available attendees required for a slot to win. Manual round creation starts
+  immediately.
 
 ## Deferred Discord commands/features
 

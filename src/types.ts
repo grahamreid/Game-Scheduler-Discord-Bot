@@ -27,6 +27,8 @@ export interface GuildSchedulingSettings {
   surveyTimeZone: string;
   /** Duration from launch until the round's availability deadline, such as 7h. */
   defaultDeadline: string;
+  /** Minimum members available for one slot before the round can proceed. */
+  minimumAttendeeCount: number;
   splitWeekendSlots: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +46,8 @@ export interface PlanningRound {
   deadline: Date;
   /** Set once the deadline has been processed into a selected day or cancellation. */
   deadlineProcessedAt: Date | null;
+  /** Attendance threshold copied from guild settings when this round was opened. */
+  minimumAttendeeCount: number;
   selectedSlot: string | null;
   selectedHostUserId: string | null;
   finalizedAt: Date | null;
