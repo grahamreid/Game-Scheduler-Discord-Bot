@@ -24,8 +24,6 @@ export interface PlanningRound {
   deadline: Date;
   /** Set once the deadline has been processed into a selected day or cancellation. */
   deadlineProcessedAt: Date | null;
-  /** Immutable, one-time availability submissions made by members for this round. */
-  availabilityResponses: AvailabilityResponse[];
   selectedSlot: string | null;
   selectedHostUserId: string | null;
   finalizedAt: Date | null;
@@ -33,8 +31,9 @@ export interface PlanningRound {
   updatedAt: Date;
 }
 
-/** One member's immutable, multi-select availability response. */
+/** One member's latest multi-select availability response for a round. */
 export interface AvailabilityResponse {
+  roundId: string;
   userId: string;
   slots: string[];
   submittedAt: Date;

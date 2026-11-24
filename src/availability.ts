@@ -3,7 +3,8 @@
  * can be read as plain business logic and reused by Discord and simulations.
  */
 import type { AvailabilityResponse, AvailabilityTally, CandidateSlot } from "./types";
-import { appendAvailabilityResponse, findPlanningRound } from "./db/planning-rounds";
+import { saveAvailabilityResponse } from "./db/availability-responses";
+import { findPlanningRound } from "./db/planning-rounds";
 
 export type AvailabilityDecision =
   | { kind: "selected"; slot: string; attendeeCount: number; tallies: AvailabilityTally[] }
@@ -45,7 +46,7 @@ export function determineWinningSlot(
 }
 
 /**
- * Records one immutable multi-select response after verifying the round is
+ * Saves a member's current multi-select response after verifying the round is
  * still accepting availability and every selected option belongs to that round.
  */
 export async function submitAvailability(
@@ -65,9 +66,5 @@ export async function submitAvailability(
   if (uniqueSelections.size !== slots.length || [...uniqueSelections].some((slot) => !allowedSlots.has(slot))) {
     throw new Error("Availability contains an invalid slot.");
   }
-  if (round.availabilityResponses.some((response) => response.userId === userId)) {
-    throw new Error("This member has already submitted availability for this round.");
-  }
-  const saved = await appendAvailabilityResponse(roundId, { userId, slots, submittedAt: now });
-  if (!saved) throw new Error("Availability is no longer open or was already submitted.");
+  await saveAvailabilityResponse({ roundId, userId, slots, submittedAt: now });
 }

@@ -26,6 +26,7 @@ export function buildAvailabilityMessage(round: PlanningRoundDocument): {
 
   const title = round.title === null ? "Board-game Scheduling" : round.title;
   return {
+    // Sends a Discord timestamp templated to show in relative time until the deadline.
     content: `**${title}**\nSelect every slot that works for you. Responses close <t:${Math.floor(round.deadline.getTime() / 1000)}:R>.`,
     components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
   };

@@ -10,7 +10,9 @@
 - The code intentionally has no generic database abstraction/repository layer.
 - The MVP uses manual end-to-end validation and simulator scenarios rather than
   unit tests. Repeatable scenarios belong in `docs/simulations/`.
-- Availability is multi-select and uses the round's scheduled deadline.
+- Availability is multi-select and uses the round's scheduled deadline. A
+  member may re-submit the shared menu before the deadline; their latest
+  response replaces their earlier one.
 - Creating a newer planning round automatically cancels any earlier active
   round in the same guild.
 - The most popular slot wins. A tie selects the alphabetically earlier slot.
@@ -25,6 +27,8 @@
   eligible volunteers, choose the least-recent host.
 - If a chosen date has only two available members, cancel the round (exact
   cancellation behavior will be defined with workflow implementation).
+- `/round wipe` is administrator-only, confirms through a private Discord
+  button, and deletes only the current guild's rounds and availability data.
 
 ## Deferred Discord commands/features
 

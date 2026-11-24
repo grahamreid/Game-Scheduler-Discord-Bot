@@ -49,9 +49,11 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 ```text
 planningRounds
   _id, guildId, channelId, status, title, deadline, deadlineProcessedAt,
-  availabilityResponses: [ { userId, slots, submittedAt } ],
   candidateSlots: [ { value } ],
   selectedSlot, selectedHostUserId, finalizedAt, createdAt, updatedAt
+
+availabilityResponses
+  roundId, userId, slots, submittedAt
 
 activities
   id, guildId, displayName, createdByUserId,
@@ -73,11 +75,12 @@ roundAnnouncements
   roundId, kind, discordMessageId, postedAt
 ```
 
-`candidateSlots` and `availabilityResponses` are embedded in their round
-because they only belong to that round and are always read with it. This
-preserves slots with zero votes and keeps each member's one-time availability
-response together with the poll it answered. Other collections remain separate
-because they will be updated independently by many Discord members.
+`candidateSlots` are embedded in their round because they only belong to that
+round and preserve slots with zero votes. `availabilityResponses` is separate:
+each document is a member's current answer for one round, and its unique
+`roundId` + `userId` index lets the bot replace that answer when the member
+submits the menu again. Other collections remain separate because they will be
+updated independently by many Discord members.
 
 Dates such as an event day are `YYYY-MM-DD` strings in the guild's timezone.
 Deadlines and audit fields are MongoDB `Date` values, which represent UTC
@@ -87,15 +90,15 @@ instants.
 
 `schedule:process` is an idempotent, manually runnable deadline processor. It
 finds `open` rounds whose `deadline` has passed and have no
-`deadlineProcessedAt` yet, then counts each member's one-time availability
+`deadlineProcessedAt` yet, then counts each member's current availability
 response.
 
 Availability responses are the source of truth, rather than a counter embedded
 in `candidateSlots`. Each Discord member interacts individually with the same
-bot message, so the bot receives a separate interaction. The MVP accepts one
-immutable submission per member; counts are calculated when the deadline
-closes. With a small group this is inexpensive and preserves the data needed for
-attendance and host eligibility.
+bot message, so the bot receives a separate interaction. A member can submit
+again before the deadline, replacing their current answer. Counts are calculated
+when the deadline closes. With a small group this is inexpensive and preserves
+the data needed for attendance and host eligibility.
 
 - Three or more members available in one or more slots: save the most popular
   slot, choosing the alphabetically earlier slot when counts tie, and set

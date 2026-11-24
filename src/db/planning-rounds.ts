@@ -4,7 +4,7 @@
  */
 import type { Collection } from "mongodb";
 import { randomUUID } from "node:crypto";
-import type { AvailabilityResponse, CandidateSlot, PlanningRound } from "../types";
+import type { CandidateSlot, PlanningRound } from "../types";
 import { getDatabase } from "./mongo";
 
 /** The data supplied when opening a planning round. */
@@ -49,7 +49,6 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     title: input.title ?? null,
     deadline: input.deadline,
     deadlineProcessedAt: null,
-    availabilityResponses: [],
     selectedSlot: null,
     selectedHostUserId: null,
     finalizedAt: null,
@@ -69,22 +68,20 @@ export async function findPlanningRound(id: string): Promise<PlanningRoundDocume
   return round;
 }
 
-/** Adds one member's response if the round remains open and they have not already responded. */
-export async function appendAvailabilityResponse(
-  roundId: string,
-  response: AvailabilityResponse,
-): Promise<boolean> {
-  const result = await (await rounds()).updateOne(
-    {
-      _id: roundId,
-      status: "open",
-      deadlineProcessedAt: null,
-      deadline: { $gt: response.submittedAt },
-      "availabilityResponses.userId": { $ne: response.userId },
-    },
-    { $push: { availabilityResponses: response } },
-  );
-  return result.modifiedCount === 1;
+/**
+ * Removes every round belonging to one guild and its dependent availability
+ * responses. Call this only after an administrator has explicitly confirmed.
+ */
+export async function wipeGuildRounds(guildId: string): Promise<number> {
+  const planningRounds = await rounds();
+  // "projection" here fetches only IDs (_id): availability responses refer to a round ID, not its full document.
+  const guildRounds = await planningRounds.find({ guildId }, { projection: { _id: 1 } }).toArray();
+  const roundIds = guildRounds.map((round) => round._id);
+  if (roundIds.length > 0) {
+    await (await getDatabase()).collection("availabilityResponses").deleteMany({ roundId: { $in: roundIds } });
+  }
+  const result = await planningRounds.deleteMany({ guildId });
+  return result.deletedCount;
 }
 
 /** Finds open rounds whose deadline is ready to process. */

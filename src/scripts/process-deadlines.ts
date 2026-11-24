@@ -5,11 +5,11 @@
  */
 import { closeDatabase } from "../db/mongo";
 import { ensureDatabaseIndexes } from "../db/setup";
-import { processDeadlines } from "../scheduling/process-deadlines";
+import { closeExpiredRounds } from "../scheduling/close-round";
 
 async function main(): Promise<void> {
   await ensureDatabaseIndexes();
-  const results = await processDeadlines();
+  const results = await closeExpiredRounds();
   console.log(JSON.stringify(results, null, 2));
   await closeDatabase();
 }

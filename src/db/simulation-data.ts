@@ -11,5 +11,12 @@ import { getDatabase } from "./mongo";
  */
 export async function clearSimulationData(): Promise<void> {
   const database = await getDatabase();
+  const rounds = await database.collection("planningRounds")
+    .find({ guildId: "simulation-guild" }, { projection: { _id: 1 } })
+    .toArray();
+  const roundIds = rounds.map((round) => round._id);
+  if (roundIds.length > 0) {
+    await database.collection("availabilityResponses").deleteMany({ roundId: { $in: roundIds } });
+  }
   await database.collection("planningRounds").deleteMany({ guildId: "simulation-guild" });
 }

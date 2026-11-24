@@ -6,7 +6,7 @@ import { submitAvailability } from "../../availability";
 import { closeDatabase } from "../../db/mongo";
 import { createPlanningRound, findPlanningRound } from "../../db/planning-rounds";
 import { clearSimulationData } from "../../db/simulation-data";
-import { processDeadlines } from "../../scheduling/process-deadlines";
+import { closeExpiredRounds } from "../../scheduling/close-round";
 
 async function main(): Promise<void> {
   const now = new Date();
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
   await submitAvailability(round._id, "casey", [friday], now);
 
   const processingTime = new Date(round.deadline.getTime() + 1);
-  const results = await processDeadlines(processingTime);
+  const results = await closeExpiredRounds(processingTime);
   const completedRound = await findPlanningRound(round._id);
   console.log(JSON.stringify({ results, completedRound }, null, 2));
   await closeDatabase();

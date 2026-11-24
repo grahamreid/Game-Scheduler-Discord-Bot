@@ -36,12 +36,13 @@ src/
 | --- | --- |
 | `src/types.ts` | Defines planning-round data and legal states without deciding how it is displayed. |
 | `src/db/mongo.ts` | Opens/reuses the MongoDB connection from `MONGODB_URI`. |
-| `src/db/planning-rounds.ts` | Direct database functions for creating rounds and storing their embedded candidate slots and one-time availability submissions. |
+| `src/db/planning-rounds.ts` | Direct database functions for creating, finding, and closing planning rounds, including their embedded candidate slots. |
+| `src/db/availability-responses.ts` | Direct database functions for each member's current availability response; kept separate so a later submission can replace it. |
 | `src/db/setup.ts` | Creates indexes that make ID and deadline lookups efficient. |
 | `src/discord/round-commands.ts` | Defines `/round create`, validates its input, checks Discord's Manage Server permission, and creates a planning round. |
 | `src/discord/availability-menu.ts` | Builds the shared slot menu and handles each member's individual selection. Kept separate because component interactions differ from slash commands. |
-| `src/availability.ts` | Availability rules: validates one-time submissions, tallies selections, and chooses a winning slot. |
-| `src/scheduling/process-deadlines.ts` | Finds expired rounds and applies the availability decision. Kept reusable for a future scheduler. |
+| `src/availability.ts` | Availability rules: validates current submissions, tallies selections, and chooses a winning slot. |
+| `src/scheduling/close-round.ts` | Closes one round's availability and also offers a reusable loop for rounds whose deadlines have passed. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |
 | `src/scripts/clear-simulations.ts` | Program run by `npm run db:clear-simulations`; deletes only simulator-created records. |
