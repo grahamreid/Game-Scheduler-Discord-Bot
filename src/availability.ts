@@ -6,7 +6,7 @@ import type { AvailabilityResponse, AvailabilityTally, CandidateDate } from "./t
 import { appendAvailabilityResponse, findPlanningRound } from "./db/planning-rounds";
 
 export type AvailabilityDecision =
-  | { kind: "selected"; candidateDateId: string; date: string; attendeeCount: number; tallies: AvailabilityTally[] }
+  | { kind: "selected"; date: string; attendeeCount: number; tallies: AvailabilityTally[] }
   | { kind: "cancelled"; attendeeCount: number; tallies: AvailabilityTally[] };
 
 /**
@@ -18,18 +18,18 @@ export function decideAvailability(
   candidateDates: CandidateDate[],
   responses: AvailabilityResponse[],
 ): AvailabilityDecision {
-  const talliesByCandidateId = new Map(candidateDates.map((candidate) => [
-    candidate.id,
-    { candidateDateId: candidate.id, date: candidate.date, votes: 0 },
+  const talliesByDate = new Map(candidateDates.map((candidate) => [
+    candidate.date,
+    { date: candidate.date, votes: 0 },
   ]));
   for (const response of responses) {
-    for (const candidateDateId of response.candidateDateIds) {
-      const tally = talliesByCandidateId.get(candidateDateId);
+    for (const date of response.dates) {
+      const tally = talliesByDate.get(date);
       if (tally !== undefined) tally.votes += 1;
     }
   }
 
-  const tallies = [...talliesByCandidateId.values()];
+  const tallies = [...talliesByDate.values()];
   const attendeeCount = Math.max(0, ...tallies.map((tally) => tally.votes));
   if (attendeeCount < 3) return { kind: "cancelled", attendeeCount, tallies };
 
@@ -38,7 +38,6 @@ export function decideAvailability(
     .sort((left, right) => left.date.localeCompare(right.date))[0];
   return {
     kind: "selected",
-    candidateDateId: winner.candidateDateId,
     date: winner.date,
     attendeeCount,
     tallies,
@@ -52,7 +51,7 @@ export function decideAvailability(
 export async function submitAvailability(
   roundId: string,
   userId: string,
-  candidateDateIds: string[],
+  dates: string[],
   now = new Date(),
 ): Promise<void> {
   const round = await findPlanningRound(roundId);
@@ -61,14 +60,14 @@ export async function submitAvailability(
     throw new Error("Availability is no longer open for this round.");
   }
 
-  const allowedIds = new Set(round.candidateDates.map((candidate) => candidate.id));
-  const uniqueSelections = new Set(candidateDateIds);
-  if (uniqueSelections.size !== candidateDateIds.length || [...uniqueSelections].some((id) => !allowedIds.has(id))) {
+  const allowedDates = new Set(round.candidateDates.map((candidate) => candidate.date));
+  const uniqueSelections = new Set(dates);
+  if (uniqueSelections.size !== dates.length || [...uniqueSelections].some((date) => !allowedDates.has(date))) {
     throw new Error("Availability contains an invalid candidate date.");
   }
   if (round.availabilityResponses.some((response) => response.userId === userId)) {
     throw new Error("This member has already submitted availability for this round.");
   }
-  const saved = await appendAvailabilityResponse(roundId, { userId, candidateDateIds, submittedAt: now });
+  const saved = await appendAvailabilityResponse(roundId, { userId, dates, submittedAt: now });
   if (!saved) throw new Error("Availability is no longer open or was already submitted.");
 }

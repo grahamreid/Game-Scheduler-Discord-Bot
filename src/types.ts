@@ -9,10 +9,7 @@ export type RoundStatus =
 
 /** A date shown as an option in a round's availability poll. */
 export interface CandidateDate {
-  id: string;
-  roundId: string;
   date: string;
-  displayOrder: number;
 }
 
 /** The persisted state of one board-game-night planning process. */
@@ -39,13 +36,12 @@ export interface PlanningRound {
 /** One member's immutable, multi-select availability response. */
 export interface AvailabilityResponse {
   userId: string;
-  candidateDateIds: string[];
+  dates: string[];
   submittedAt: Date;
 }
 
 /** The number of available members for one candidate date. */
 export interface AvailabilityTally {
-  candidateDateId: string;
   date: string;
   votes: number;
 }

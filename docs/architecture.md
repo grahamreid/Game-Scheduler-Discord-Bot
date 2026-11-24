@@ -49,8 +49,8 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 ```text
 planningRounds
   _id, guildId, channelId, status, title, deadline, deadlineProcessedAt,
-  availabilityResponses: [ { userId, candidateDateIds, submittedAt } ],
-  candidateDates: [ { id, date, displayOrder } ],
+  availabilityResponses: [ { userId, dates, submittedAt } ],
+  candidateDates: [ { date } ],
   selectedDate, selectedHostUserId, finalizedAt, createdAt, updatedAt
 
 activities

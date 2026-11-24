@@ -13,7 +13,7 @@ export interface CreatePlanningRoundInput {
   channelId: string;
   title?: string;
   deadline: Date;
-  candidateDates: Array<{ date: string; displayOrder: number }>;
+  candidateDates: string[];
 }
 
 /** Candidate dates are embedded because they only exist within one round. */
@@ -35,6 +35,9 @@ async function cancelActiveRoundsForGuild(guildId: string, cancelledAt: Date): P
 
 /** Creates an open round and assigns stable IDs to its candidate dates. */
 export async function createPlanningRound(input: CreatePlanningRoundInput): Promise<PlanningRoundDocument> {
+  if (new Set(input.candidateDates).size !== input.candidateDates.length) {
+    throw new Error("Candidate dates must be unique within a round.");
+  }
   const now = new Date();
   const id = randomUUID();
   await cancelActiveRoundsForGuild(input.guildId, now);
@@ -52,12 +55,9 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     finalizedAt: null,
     createdAt: now,
     updatedAt: now,
-    candidateDates: input.candidateDates.map((candidate) => ({
-      id: randomUUID(),
-      roundId: id,
-      date: candidate.date,
-      displayOrder: candidate.displayOrder,
-    })),
+    candidateDates: [...input.candidateDates]
+      .sort((left, right) => left.localeCompare(right))
+      .map((date) => ({ date })),
   };
   await (await rounds()).insertOne(round);
   return round;

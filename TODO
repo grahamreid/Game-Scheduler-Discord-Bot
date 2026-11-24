@@ -8,6 +8,7 @@
 * limit or prevent interactivity with the server when not expected
 * consolidate this file with decision + backlog
 * ability to delete a round via discord command
+* one time set up of the dates / time slots (eg Saturday Afternoon and Saturday Evening separate)
 * potential virtual vs in-person logic
 ** add command that polls people one time asking their preference between virtual and in-person
 ** up front say whether a round is eligible for virtual.
