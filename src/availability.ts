@@ -14,7 +14,7 @@ export type AvailabilityDecision =
  * A game night requires at least three available people. A tie selects the
  * alphabetically first slot, avoiding a second interaction round.
  */
-export function decideAvailability(
+export function determineWinningSlot(
   candidateSlots: CandidateSlot[],
   responses: AvailabilityResponse[],
 ): AvailabilityDecision {

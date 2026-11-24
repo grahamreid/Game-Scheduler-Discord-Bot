@@ -5,6 +5,7 @@
 import "dotenv/config";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { ensureDatabaseIndexes } from "./db/setup";
+import { handleAvailabilityMenu } from "./discord/availability-menu";
 import { handleRoundCommand, roundCommand } from "./discord/round-commands";
 
 const token = process.env.DISCORD_TOKEN;
@@ -23,8 +24,11 @@ client.once(Events.ClientReady, async (readyClient) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand() || interaction.commandName !== "round") return;
-  await handleRoundCommand(interaction);
+  if (interaction.isChatInputCommand() && interaction.commandName === "round") {
+    await handleRoundCommand(interaction);
+  } else if (interaction.isStringSelectMenu()) {
+    await handleAvailabilityMenu(interaction);
+  }
 });
 
 void client.login(token);

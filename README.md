@@ -1,6 +1,6 @@
 # Board Game Scheduler
 
-A Discord bot for organizing recurring board-game nights. The current milestone
+A Discord bot for organizing recurring board-game scheduling. The current milestone
 sets up MongoDB persistence and a local simulator; Discord interactions are the
 next milestone.
 

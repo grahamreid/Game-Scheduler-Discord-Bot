@@ -130,5 +130,6 @@ Server** can run:
 /round create deadline:1h slots:Friday,Saturday title:Test night
 ```
 
-The command replies privately with the newly created round ID. The next slice
-adds the shared availability menu to the channel.
+The command replies privately with the newly created round ID and posts a shared
+availability menu in the channel. Each member may select one or more slots once;
+their confirmation is visible only to them.

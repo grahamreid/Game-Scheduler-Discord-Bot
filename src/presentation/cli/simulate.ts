@@ -14,7 +14,7 @@ async function main(): Promise<void> {
   const round = await createPlanningRound({
     guildId: "simulation-guild",
     channelId: "simulation-channel",
-    title: "Simulated board-game night",
+    title: "Simulated board-game scheduling round",
     deadline: new Date(now.getTime() + 60 * 60 * 1000),
     slots: [
       "2026-12-04",

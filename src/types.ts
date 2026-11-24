@@ -12,7 +12,7 @@ export interface CandidateSlot {
   value: string;
 }
 
-/** The persisted state of one board-game-night planning process. */
+/** The persisted state of one board-game scheduling process. */
 export interface PlanningRound {
   /** MongoDB's built-in, indexed identifier for this round. */
   _id: string;

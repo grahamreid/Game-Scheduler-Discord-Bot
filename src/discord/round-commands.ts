@@ -8,6 +8,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { createPlanningRound } from "../db/planning-rounds";
+import { buildAvailabilityMessage } from "./availability-menu";
 
 export const roundCommand = new SlashCommandBuilder()
   .setName("round")
@@ -60,6 +61,7 @@ export async function handleRoundCommand(interaction: ChatInputCommandInteractio
   if (interaction.options.getSubcommand() !== "create" || interaction.guildId === null) return;
 
   try {
+    await interaction.deferReply({ ephemeral: true });
     const round = await createPlanningRound({
       guildId: interaction.guildId,
       channelId: interaction.channelId,
@@ -67,12 +69,14 @@ export async function handleRoundCommand(interaction: ChatInputCommandInteractio
       deadline: parseDeadline(interaction.options.getString("deadline", true)),
       slots: parseSlots(interaction.options.getString("slots", true)),
     });
-    await interaction.reply({
-      content: `Created round \`${round._id}\` with deadline <t:${Math.floor(round.deadline.getTime() / 1000)}:F>. Availability controls will be added next.`,
-      ephemeral: true,
-    });
+    if (interaction.channel === null || !interaction.channel.isSendable()) {
+      throw new Error("Run this command in a text channel.");
+    }
+    await interaction.channel.send(buildAvailabilityMessage(round));
+    await interaction.editReply(`Created round \`${round._id}\` and posted its availability menu.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not create the round.";
-    await interaction.reply({ content: message, ephemeral: true });
+    if (interaction.deferred) await interaction.editReply(message);
+    else await interaction.reply({ content: message, ephemeral: true });
   }
 }

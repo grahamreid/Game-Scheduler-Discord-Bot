@@ -39,7 +39,8 @@ src/
 | `src/db/planning-rounds.ts` | Direct database functions for creating rounds and storing their embedded candidate slots and one-time availability submissions. |
 | `src/db/setup.ts` | Creates indexes that make ID and deadline lookups efficient. |
 | `src/discord/round-commands.ts` | Defines `/round create`, validates its input, checks Discord's Manage Server permission, and creates a planning round. |
-| `src/availability.ts` | Availability rules: validates one-time submissions, tallies selections, and chooses a winning date. |
+| `src/discord/availability-menu.ts` | Builds the shared slot menu and handles each member's individual selection. Kept separate because component interactions differ from slash commands. |
+| `src/availability.ts` | Availability rules: validates one-time submissions, tallies selections, and chooses a winning slot. |
 | `src/scheduling/process-deadlines.ts` | Finds expired rounds and applies the availability decision. Kept reusable for a future scheduler. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |

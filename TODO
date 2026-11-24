@@ -26,3 +26,4 @@
 * warnings:
 ** Warning: Supplying "ephemeral" for interaction response options is deprecated. Utilize flags instead.
 (Use `node --trace-warnings ...` to show where the warning was created)
+* first time setup: initial slots and initial in-person vs virtual preferences, recurrence frequency
