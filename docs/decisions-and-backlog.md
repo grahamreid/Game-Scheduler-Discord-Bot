@@ -34,6 +34,8 @@
   weekend Afternoon/Evening split. They also define the minimum number of
   available attendees required for a slot to win. Manual round creation starts
   immediately.
+- Local development can opt into an in-process availability closer through
+  `ENABLE_LOCAL_ROUND_CLOSER=true`; production will use an external trigger.
 
 ## Deferred Discord commands/features
 

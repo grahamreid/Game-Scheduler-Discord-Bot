@@ -48,6 +48,20 @@ npm run dev
 With the bot running, use the private Discord server setup guide and exercise
 the workflow through Discord commands and menus.
 
+### Local automatic poll closing
+
+For local end-to-end testing, set these values in your ignored `.env` file:
+
+```dotenv
+ENABLE_LOCAL_ROUND_CLOSER=true
+ROUND_CLOSER_INTERVAL_MS=30000
+```
+
+The running bot checks immediately and then every 30 seconds for expired
+availability polls. When it closes one, it posts the selected slot or
+insufficient-attendance cancellation in that round's channel. This is a local
+development trigger only; leave it `false` outside local testing.
+
 ## Project documentation
 
 - [Architecture and data model](docs/architecture.md)

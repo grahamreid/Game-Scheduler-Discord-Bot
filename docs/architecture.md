@@ -142,6 +142,22 @@ the data needed for attendance and host eligibility.
   `deadlineProcessedAt`.
 - Fewer members than the configured minimum in every slot: cancel the round.
 
+## Local poll closing
+
+When `ENABLE_LOCAL_ROUND_CLOSER=true`, the local Discord process runs an
+in-process timer. It checks immediately at startup and then at
+`ROUND_CLOSER_INTERVAL_MS` (30 seconds is useful for testing) to invoke the
+same application workflow used by future production triggers. That workflow
+closes the poll and prepares the selected attendees; the Discord layer resolves
+their display names and posts the announcement. Only the process that
+successfully applies the close result posts an availability-closure announcement,
+so repeated checks do not duplicate it. The announcement intentionally covers
+availability only; activity and host selection will be added to the
+finalization workflow later.
+
+Production will not use this in-process timer. An external scheduler will call
+the same reusable workflow.
+
 ## Local verification
 
 Either native MongoDB Community Server or Docker Compose runs MongoDB locally.

@@ -15,7 +15,8 @@ import {
 export interface RoundClosingResult {
   roundId: string;
   decision: AvailabilityDecision;
-  applied: boolean;
+  /** True only when this process successfully persisted the availability closure. */
+  closedByThisRun: boolean;
 }
 
 /** Determines and persists the availability outcome for one open round. */
@@ -27,10 +28,10 @@ export async function closeRound(round: PlanningRoundDocument, closedAt = new Da
     ? round.minimumAttendeeCount
     : 3;
   const decision = determineWinningSlot(round.candidateSlots, responses, minimumAttendeeCount);
-  const applied = decision.kind === "selected"
+  const closedByThisRun = decision.kind === "selected"
     ? await selectAvailabilitySlot(round._id, decision.slot, closedAt)
     : await cancelForInsufficientAvailability(round._id, closedAt);
-  return { roundId: round._id, decision, applied };
+  return { roundId: round._id, decision, closedByThisRun };
 }
 
 /** Closes every round whose configured deadline has passed. Safe to call repeatedly. */

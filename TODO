@@ -35,3 +35,4 @@
 * do real testing with multiple (fake) users in discord directly (if possible)
 * should wait until all responses are submitted (availability, what games, etc) before giving a response. Unless there's an error (eg poll already closed)
 * if today == the next date we should be running a round on, and time >= the survey-launch-time, then we should create a new round
+* change names of things, ie "poll" or "session" instead of "round"
