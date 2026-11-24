@@ -57,7 +57,7 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     updatedAt: now,
     candidateDates: [...input.candidateDates]
       .sort((left, right) => left.localeCompare(right))
-      .map((date) => ({ date })),
+      .map((date) => ({ date })), // ["2026-12-04"] -> [{ date: "2026-12-04" }]
   };
   await (await rounds()).insertOne(round);
   return round;
