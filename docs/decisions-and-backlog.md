@@ -25,8 +25,6 @@
   command later.
 - A selected host must volunteer and be available on the selected date. Among
   eligible volunteers, choose the least-recent host.
-- If a chosen date has only two available members, cancel the round (exact
-  cancellation behavior will be defined with workflow implementation).
 - `/round wipe` is administrator-only, confirms through a private Discord
   button, and deletes only the current guild's rounds and availability data.
 - Guild scheduling settings support `weekly` and `biweekly` cadence, a first
@@ -43,23 +41,25 @@
 | --- | --- |
 | `/activity delete` | Administrative removal/hiding of unwanted or duplicate suggestions. |
 | Reminder messages | Consider prompting members before a deadline. |
-| Round cancellation messaging | Needed when turnout is below the minimum. |
-| Recurrence administration | Configure cadence, channel, slots, and deadlines. |
+| Immediate round closure | Administrator command to close the current availability poll without waiting for its deadline. |
+| Recurrence execution | Use configured cadence, first survey date/time, and timezone to create rounds automatically. |
+| Upcoming-session reminders | Support multiple closed, future sessions and send a day-before reminder. |
+| Virtual/in-person preferences | Define global member preference, per-round eligibility, and the rule that chooses format. |
 | Monthly cadence | Requires an explicit calendar rule (for example, same day-of-month or nth weekday), behavior for months without that date, and a guild timezone. It cannot safely reuse the fixed 7/14-day calculation. |
 | More timezone mappings | Initial setup maps ET/EST/EDT, CT/CST/CDT, MT/MST/MDT, and PT/PST/PDT to IANA zones. Add other regions or direct IANA-zone selection as needed. |
 | AWS deployment | Lambda/API Gateway/EventBridge after local workflow is proven. |
 
 ## Implementation sequence
 
-1. Discord announcement / integration, and private-server testing.
-2. Activity suggestions and voting display.
-3. Host volunteering and host-history selection.
-4. Final announcement.
-5. Automated recurring round creation.
+1. Activity suggestions and voting display.
+2. Host volunteering and host-history selection.
+3. Complete final round closure and announcement, including activity discussion
+   results and selected host.
+4. Automated recurring round creation from guild scheduling settings.
+5. Upcoming-session reminders and support for multiple future closed sessions.
 6. AWS deployment via EventBridge (or similar), API Gateway, and possibly Lambda.
 7. Live testing and integration with the real server.
 
 ## Private-server setup
 
-- [Discord integration checklist](discord-integration-checklist.md)
 - [Private test-server and bot setup](private-discord-test-setup.md)

@@ -1,38 +1,59 @@
-* decide how to break ties (probably a subsequent question for users to pick one of the two days, only one choice allowed)
-* some time down the road see if people want a reminder message in the channel
-* command for deleting out activities
-* if only 2 people available for any particular time slot, cancel
-* let's do top 5 instead of top 10, + whatever suggestions people add
-* actual deployment plan?
-* limit or prevent interactivity with the server when not expected
-* consolidate this file with decision + backlog
-* ability to delete a round via discord command
-* one time set up of the dates / time slots (eg Saturday Afternoon and Saturday Evening separate)
-* potential virtual vs in-person logic
-** add command that polls people one time asking their preference between virtual and in-person
-** up front say whether a round is eligible for virtual.
-*** use ratio of virtual prefer people to determine how often a particular round will be eligible for in-person only, or either in-person or virtual
-*** people can choose whether their preference is in-person or virtual for that round (optional selection),
-**** if neither is selected, go with their global preference
-**** this prompt only shows up when the round is eligible for either
-**** if at least one virtual prefer person is present on the round for the decided availability slot (either from that round's preferences or the global), the round will be virtual
-* cancelling and finalizing should both produce a new announcement
-* let someone resubmit their availabilities for a round (new command)
-* once done with this project create an AGENTS.md documenting takeaways in terms of my preferred dev style
-* generalize bot for any server to be able to use
-* protect secrets / env during agentic dev
-** better / safer user free form inputs, sanitation, etc
-* warnings:
-** Warning: Supplying "ephemeral" for interaction response options is deprecated. Utilize flags instead.
-(Use `node --trace-warnings ...` to show where the warning was created)
-* first time setup: initial slots and initial in-person vs virtual preferences, recurrence frequency
-* pooky themed responses / messages
-* command to immediately close current round
-* don't send completion confirmation until all inputs are filled out. Can we put that all in one message?
-* we should make the final announcement list who, where, when, and the game selection results
-* announce when a board game session is coming up (eg the day before), should only look at closed rounds when doing this. This should only need to run once per day
-* we should allow having multiple concurrently "closed" but still upcoming board game sessions, so that we can have correctly working announcements for both.
-* do real testing with multiple (fake) users in discord directly (if possible)
-* should wait until all responses are submitted (availability, what games, etc) before giving a response. Unless there's an error (eg poll already closed)
-* if today == the next date we should be running a round on, and time >= the survey-launch-time, then we should create a new round
-* change names of things, ie "poll" or "session" instead of "round"
+* Next implementation work
+
+- Activity suggestions and voting: recent top-five suggestions, one free-text
+  proposal per member, and up to three non-binding votes per member.
+- Host volunteering, hosting history, and least-recent eligible-host selection.
+- Complete round-closure announcement: who, where, when, activity discussion
+  results, and selected host.
+- Administrator command to close the current round immediately.
+- Ensure members receive their completion confirmation only after every input
+  for the currently implemented workflow has been saved; errors may reply
+  immediately.
+- Validate/store the configured Discord channel and enforce select-menu limits
+  before round creation.
+
+* Recurrence and notifications
+
+- Create a scheduled round when its configured next survey date and launch time
+  arrive.
+- Support multiple availability-closed but upcoming sessions so reminders work
+  for each one.
+- Send a once-daily check for a session-day-before reminder, considering only
+  closed rounds.
+
+* Validation and hardening
+
+- Run a real multi-member Discord test with legitimate manually operated
+  accounts; do not automate normal Discord user accounts.
+- Replace deprecated ephemeral-response options with Discord's flags API.
+- Review free-form input limits/sanitization and keep secrets safe during
+  agent-assisted development.
+- Restrict unexpected interaction with the bot outside its configured channel
+  and intended round state.
+
+* Later product ideas
+
+- `/activity delete` administrative cleanup for unwanted or duplicate activity
+  suggestions.
+- Consider reminder messages before an availability deadline.
+- Consider Pooky-themed bot responses.
+- Consider a terminology pass (`round`, `poll`, and `session`) once the full
+  workflow is established.
+- Generalize the bot for multiple independent Discord servers.
+- After the project, write `AGENTS.md` documenting preferred development style.
+
+** Virtual versus in-person sessions
+
+- Add a one-time command that polls members for their global virtual versus
+  in-person preference.
+- State up front whether each round is eligible for in-person only, virtual
+  only, or either format.
+- Determine how often rounds are in-person-only versus either-format using the
+  ratio of members who prefer virtual sessions.
+- For a round eligible for either format, allow members to select an optional
+  per-round virtual/in-person preference.
+  - If no per-round preference is selected, use the member's global preference.
+  - Show that prompt only when the round is eligible for either format.
+- If at least one virtual-preferring attendee is available in the selected slot
+  (using their per-round preference when given, otherwise their global
+  preference), make the selected session virtual.
