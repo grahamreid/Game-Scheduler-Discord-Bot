@@ -2,6 +2,7 @@
  * Database index setup is isolated from connection code so it can run from a
  * command without being mixed into normal reads and writes.
  */
+import type { Collection, Document } from "mongodb";
 import { getDatabase } from "./mongo";
 
 /**
@@ -11,12 +12,22 @@ import { getDatabase } from "./mongo";
 export async function ensureDatabaseIndexes(): Promise<void> {
   const database = await getDatabase();
   const planningRounds = database.collection("planningRounds");
-  const indexes = await planningRounds.listIndexes().toArray();
-  if (indexes.some((index) => index.name === "planning_round_id")) {
-    await planningRounds.dropIndex("planning_round_id");
+  await ensureIndex(planningRounds, "open_round_deadline", { status: 1, deadline: 1 });
+  await ensureIndex(planningRounds, "guild_active_round", { guildId: 1, status: 1 });
+}
+
+/** Replaces an outdated named index instead of letting an old local schema block startup. */
+async function ensureIndex(
+  collection: Collection<Document>,
+  name: string,
+  key: Record<string, 1 | -1>,
+): Promise<void> {
+  let indexes = await collection.listIndexes().toArray();
+  const namedIndex = indexes.find((index) => index.name === name);
+  if (namedIndex !== undefined && JSON.stringify(namedIndex.key) !== JSON.stringify(key)) {
+    await collection.dropIndex(name);
+    indexes = await collection.listIndexes().toArray();
   }
-  await planningRounds.createIndexes([
-    { key: { status: 1, deadline: 1 }, name: "open_round_deadline" },
-    { key: { guildId: 1, status: 1 }, name: "guild_active_round" },
-  ]);
+  if (indexes.some((index) => JSON.stringify(index.key) === JSON.stringify(key))) return;
+  await collection.createIndex(key, { name });
 }

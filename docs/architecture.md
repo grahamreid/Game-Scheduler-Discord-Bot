@@ -25,12 +25,12 @@ share the same `MONGODB_URI`.
 
 ## Round workflow
 
-1. An administrator creates an `open` round with possible event dates and an
+1. An administrator creates an `open` round with possible event slots and an
    overall deadline.
 2. Members select every date that works for them. Activity suggestions/votes
    and host volunteering can be collected during the same `open` period.
 3. At the deadline, the scheduler counts availability. A tie selects the
-   chronologically earlier date.
+   alphabetically earlier slot.
 4. The winning date, activity suggestions, and eligible least-recent host are
    announced. The round becomes `finalized`, or `cancelled` for insufficient
    turnout.
@@ -49,9 +49,9 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 ```text
 planningRounds
   _id, guildId, channelId, status, title, deadline, deadlineProcessedAt,
-  availabilityResponses: [ { userId, dates, submittedAt } ],
-  candidateDates: [ { date } ],
-  selectedDate, selectedHostUserId, finalizedAt, createdAt, updatedAt
+  availabilityResponses: [ { userId, slots, submittedAt } ],
+  candidateSlots: [ { value } ],
+  selectedSlot, selectedHostUserId, finalizedAt, createdAt, updatedAt
 
 activities
   id, guildId, displayName, createdByUserId,
@@ -73,9 +73,9 @@ roundAnnouncements
   roundId, kind, discordMessageId, postedAt
 ```
 
-`candidateDates` and `availabilityResponses` are embedded in their round
+`candidateSlots` and `availabilityResponses` are embedded in their round
 because they only belong to that round and are always read with it. This
-preserves dates with zero votes and keeps each member's one-time availability
+preserves slots with zero votes and keeps each member's one-time availability
 response together with the poll it answered. Other collections remain separate
 because they will be updated independently by many Discord members.
 
@@ -91,15 +91,16 @@ finds `open` rounds whose `deadline` has passed and have no
 response.
 
 Availability responses are the source of truth, rather than a counter embedded
-in `candidateDates`. Each Discord member interacts individually with the same
+in `candidateSlots`. Each Discord member interacts individually with the same
 bot message, so the bot receives a separate interaction. The MVP accepts one
 immutable submission per member; counts are calculated when the deadline
 closes. With a small group this is inexpensive and preserves the data needed for
 attendance and host eligibility.
 
-- Three or more members available on one or more dates: save the most popular
-  date, choosing the earlier date when counts tie, and set `deadlineProcessedAt`.
-- Fewer than three members on every date: cancel the round.
+- Three or more members available in one or more slots: save the most popular
+  slot, choosing the alphabetically earlier slot when counts tie, and set
+  `deadlineProcessedAt`.
+- Fewer than three members in every slot: cancel the round.
 
 ## Local verification
 

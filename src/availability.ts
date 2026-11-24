@@ -2,43 +2,43 @@
  * Availability-specific rules live here instead of the database file so they
  * can be read as plain business logic and reused by Discord and simulations.
  */
-import type { AvailabilityResponse, AvailabilityTally, CandidateDate } from "./types";
+import type { AvailabilityResponse, AvailabilityTally, CandidateSlot } from "./types";
 import { appendAvailabilityResponse, findPlanningRound } from "./db/planning-rounds";
 
 export type AvailabilityDecision =
-  | { kind: "selected"; date: string; attendeeCount: number; tallies: AvailabilityTally[] }
+  | { kind: "selected"; slot: string; attendeeCount: number; tallies: AvailabilityTally[] }
   | { kind: "cancelled"; attendeeCount: number; tallies: AvailabilityTally[] };
 
 /**
  * Tallies multi-select availability and determines the next workflow step.
  * A game night requires at least three available people. A tie selects the
- * chronologically earliest day, avoiding a second interaction round.
+ * alphabetically first slot, avoiding a second interaction round.
  */
 export function decideAvailability(
-  candidateDates: CandidateDate[],
+  candidateSlots: CandidateSlot[],
   responses: AvailabilityResponse[],
 ): AvailabilityDecision {
-  const talliesByDate = new Map(candidateDates.map((candidate) => [
-    candidate.date,
-    { date: candidate.date, votes: 0 },
+  const talliesBySlot = new Map(candidateSlots.map((candidate) => [
+    candidate.value,
+    { slot: candidate.value, votes: 0 },
   ]));
   for (const response of responses) {
-    for (const date of response.dates) {
-      const tally = talliesByDate.get(date);
+    for (const slot of response.slots) {
+      const tally = talliesBySlot.get(slot);
       if (tally !== undefined) tally.votes += 1;
     }
   }
 
-  const tallies = [...talliesByDate.values()];
+  const tallies = [...talliesBySlot.values()];
   const attendeeCount = Math.max(0, ...tallies.map((tally) => tally.votes));
   if (attendeeCount < 3) return { kind: "cancelled", attendeeCount, tallies };
 
   const winner = tallies
     .filter((tally) => tally.votes === attendeeCount)
-    .sort((left, right) => left.date.localeCompare(right.date))[0];
+    .sort((left, right) => left.slot.localeCompare(right.slot))[0];
   return {
     kind: "selected",
-    date: winner.date,
+    slot: winner.slot,
     attendeeCount,
     tallies,
   };
@@ -51,7 +51,7 @@ export function decideAvailability(
 export async function submitAvailability(
   roundId: string,
   userId: string,
-  dates: string[],
+  slots: string[],
   now = new Date(),
 ): Promise<void> {
   const round = await findPlanningRound(roundId);
@@ -60,14 +60,14 @@ export async function submitAvailability(
     throw new Error("Availability is no longer open for this round.");
   }
 
-  const allowedDates = new Set(round.candidateDates.map((candidate) => candidate.date));
-  const uniqueSelections = new Set(dates);
-  if (uniqueSelections.size !== dates.length || [...uniqueSelections].some((date) => !allowedDates.has(date))) {
-    throw new Error("Availability contains an invalid candidate date.");
+  const allowedSlots = new Set(round.candidateSlots.map((candidate) => candidate.value));
+  const uniqueSelections = new Set(slots);
+  if (uniqueSelections.size !== slots.length || [...uniqueSelections].some((slot) => !allowedSlots.has(slot))) {
+    throw new Error("Availability contains an invalid slot.");
   }
   if (round.availabilityResponses.some((response) => response.userId === userId)) {
     throw new Error("This member has already submitted availability for this round.");
   }
-  const saved = await appendAvailabilityResponse(roundId, { userId, dates, submittedAt: now });
+  const saved = await appendAvailabilityResponse(roundId, { userId, slots, submittedAt: now });
   if (!saved) throw new Error("Availability is no longer open or was already submitted.");
 }

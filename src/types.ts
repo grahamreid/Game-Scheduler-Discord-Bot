@@ -7,9 +7,9 @@ export type RoundStatus =
   | "finalized"
   | "cancelled";
 
-/** A date shown as an option in a round's availability poll. */
-export interface CandidateDate {
-  date: string;
+/** A free-form option shown in a round's availability poll. */
+export interface CandidateSlot {
+  value: string;
 }
 
 /** The persisted state of one board-game-night planning process. */
@@ -26,7 +26,7 @@ export interface PlanningRound {
   deadlineProcessedAt: Date | null;
   /** Immutable, one-time availability submissions made by members for this round. */
   availabilityResponses: AvailabilityResponse[];
-  selectedDate: string | null;
+  selectedSlot: string | null;
   selectedHostUserId: string | null;
   finalizedAt: Date | null;
   createdAt: Date;
@@ -36,12 +36,12 @@ export interface PlanningRound {
 /** One member's immutable, multi-select availability response. */
 export interface AvailabilityResponse {
   userId: string;
-  dates: string[];
+  slots: string[];
   submittedAt: Date;
 }
 
 /** The number of available members for one candidate date. */
 export interface AvailabilityTally {
-  date: string;
+  slot: string;
   votes: number;
 }

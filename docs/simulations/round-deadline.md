@@ -30,8 +30,8 @@ npm run db:clear-simulations
 Expected result:
 
 - The output contains one decision with `kind: "selected"`.
-- The Friday candidate has three votes; Saturday has one.
-- `completedRound.selectedDate` is `2026-12-04`.
+- The `2026-12-04` slot has three votes; `2026-12-05` has one.
+- `completedRound.selectedSlot` is `2026-12-04`.
 - `completedRound.deadlineProcessedAt` has a timestamp.
 - The overall `completedRound.status` remains `"open"`, because activity and
   host collection can still happen.

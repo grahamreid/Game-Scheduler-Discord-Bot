@@ -13,7 +13,7 @@
 - Availability is multi-select and uses the round's scheduled deadline.
 - Creating a newer planning round automatically cancels any earlier active
   round in the same guild.
-- The most popular date wins. A tie selects the chronologically earlier date.
+- The most popular slot wins. A tie selects the alphabetically earlier slot.
 - Activity suggestions are non-binding discussion input; do not automatically
   select an activity winner.
 - Members may vote for up to three activities and propose one free-text
@@ -33,7 +33,7 @@
 | `/activity delete` | Administrative removal/hiding of unwanted or duplicate suggestions. |
 | Reminder messages | Consider prompting members before a deadline. |
 | Round cancellation messaging | Needed when turnout is below the minimum. |
-| Recurrence administration | Configure cadence, channel, dates, and deadlines. |
+| Recurrence administration | Configure cadence, channel, slots, and deadlines. |
 | AWS deployment | Lambda/API Gateway/EventBridge after local workflow is proven. |
 
 ## Implementation sequence
@@ -43,6 +43,10 @@
 3. Host volunteering and host-history selection.
 4. Final announcement.
 5. Automated recurring round creation.
-6. AWS deployment via EventBridge (or similar), API Gateway, and possibly
-   Lambda.
+6. AWS deployment via EventBridge (or similar), API Gateway, and possibly Lambda.
 7. Live testing and integration with the real server.
+
+## Private-server setup
+
+- [Discord integration checklist](discord-integration-checklist.md)
+- [Private test-server and bot setup](private-discord-test-setup.md)

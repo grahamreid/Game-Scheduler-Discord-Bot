@@ -20,3 +20,9 @@
 * cancelling and finalizing should both produce a new announcement
 * let someone resubmit their availabilities for a round (new command)
 * once done with this project create an AGENTS.md documenting takeaways in terms of my preferred dev style
+* generalize bot for any server to be able to use
+* protect secrets / env during agentic dev
+** better / safer user free form inputs, sanitation, etc
+* warnings:
+** Warning: Supplying "ephemeral" for interaction response options is deprecated. Utilize flags instead.
+(Use `node --trace-warnings ...` to show where the warning was created)

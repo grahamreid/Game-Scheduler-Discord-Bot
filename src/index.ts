@@ -1,5 +1,30 @@
 /**
- * Future Discord application entry point. It exists now to reserve one clear
- * startup location rather than mixing bot wiring into CLI simulation scripts.
+ * Starts the local Discord Gateway bot. This is deliberately the one process
+ * that owns Discord connection lifecycle; command behavior lives in src/discord.
  */
-console.log("Board Game Scheduler foundation is installed. Run npm run simulate to verify local storage.");
+import "dotenv/config";
+import { Client, Events, GatewayIntentBits } from "discord.js";
+import { ensureDatabaseIndexes } from "./db/setup";
+import { handleRoundCommand, roundCommand } from "./discord/round-commands";
+
+const token = process.env.DISCORD_TOKEN;
+const testGuildId = process.env.DISCORD_TEST_GUILD_ID;
+if (token === undefined || testGuildId === undefined) {
+  throw new Error("DISCORD_TOKEN and DISCORD_TEST_GUILD_ID are required. See docs/private-discord-test-setup.md.");
+}
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+client.once(Events.ClientReady, async (readyClient) => {
+  await ensureDatabaseIndexes();
+  const guild = await readyClient.guilds.fetch(testGuildId);
+  await guild.commands.set([roundCommand.toJSON()]);
+  console.log(`Logged in as ${readyClient.user.tag}; test-guild commands registered.`);
+});
+
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isChatInputCommand() || interaction.commandName !== "round") return;
+  await handleRoundCommand(interaction);
+});
+
+void client.login(token);

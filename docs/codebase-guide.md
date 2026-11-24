@@ -22,6 +22,7 @@ MongoDB, and Discord bots.
 ```text
 src/
   db/                 # MongoDB connection, indexes, and direct collection helpers
+  discord/            # command definitions and interaction handlers
   scheduling/         # reusable processing invoked by a command now and a scheduler later
   presentation/       # entry points for people/systems, currently a CLI simulator
   scripts/            # maintenance programs, currently database initialization
@@ -35,15 +36,16 @@ src/
 | --- | --- |
 | `src/types.ts` | Defines planning-round data and legal states without deciding how it is displayed. |
 | `src/db/mongo.ts` | Opens/reuses the MongoDB connection from `MONGODB_URI`. |
-| `src/db/planning-rounds.ts` | Direct database functions for creating rounds and storing their embedded candidate dates and one-time availability submissions. |
+| `src/db/planning-rounds.ts` | Direct database functions for creating rounds and storing their embedded candidate slots and one-time availability submissions. |
 | `src/db/setup.ts` | Creates indexes that make ID and deadline lookups efficient. |
+| `src/discord/round-commands.ts` | Defines `/round create`, validates its input, checks Discord's Manage Server permission, and creates a planning round. |
 | `src/availability.ts` | Availability rules: validates one-time submissions, tallies selections, and chooses a winning date. |
 | `src/scheduling/process-deadlines.ts` | Finds expired rounds and applies the availability decision. Kept reusable for a future scheduler. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |
 | `src/scripts/clear-simulations.ts` | Program run by `npm run db:clear-simulations`; deletes only simulator-created records. |
 | `src/presentation/cli/simulate.ts` | Discord-free workflow simulation that writes responses, processes a deadline, and prints the result. |
-| `src/index.ts` | Placeholder main entry point for the future Discord interaction handler. |
+| `src/index.ts` | Starts the local Discord Gateway bot and registers test-guild commands. It is a long-running bot process, not an HTTP server. |
 
 ## TypeScript terms used here
 

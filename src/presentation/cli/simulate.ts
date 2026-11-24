@@ -16,14 +16,14 @@ async function main(): Promise<void> {
     channelId: "simulation-channel",
     title: "Simulated board-game night",
     deadline: new Date(now.getTime() + 60 * 60 * 1000),
-    candidateDates: [
+    slots: [
       "2026-12-04",
       "2026-12-05",
     ],
   });
 
-  const friday = round.candidateDates[0].date;
-  const saturday = round.candidateDates[1].date;
+  const friday = round.candidateSlots[0].value;
+  const saturday = round.candidateSlots[1].value;
   await submitAvailability(round._id, "alex", [friday, saturday], now);
   await submitAvailability(round._id, "blair", [friday], now);
   await submitAvailability(round._id, "casey", [friday], now);

@@ -4,7 +4,7 @@
  */
 import type { Collection } from "mongodb";
 import { randomUUID } from "node:crypto";
-import type { AvailabilityResponse, CandidateDate, PlanningRound } from "../types";
+import type { AvailabilityResponse, CandidateSlot, PlanningRound } from "../types";
 import { getDatabase } from "./mongo";
 
 /** The data supplied when opening a planning round. */
@@ -13,12 +13,12 @@ export interface CreatePlanningRoundInput {
   channelId: string;
   title?: string;
   deadline: Date;
-  candidateDates: string[];
+  slots: string[];
 }
 
-/** Candidate dates are embedded because they only exist within one round. */
+/** Candidate slots are embedded because they only exist within one round. */
 export interface PlanningRoundDocument extends PlanningRound {
-  candidateDates: CandidateDate[];
+  candidateSlots: CandidateSlot[];
 }
 
 async function rounds(): Promise<Collection<PlanningRoundDocument>> {
@@ -33,10 +33,10 @@ async function cancelActiveRoundsForGuild(guildId: string, cancelledAt: Date): P
   );
 }
 
-/** Creates an open round and assigns stable IDs to its candidate dates. */
+/** Creates an open round and stores its alphabetically ordered candidate slots. */
 export async function createPlanningRound(input: CreatePlanningRoundInput): Promise<PlanningRoundDocument> {
-  if (new Set(input.candidateDates).size !== input.candidateDates.length) {
-    throw new Error("Candidate dates must be unique within a round.");
+  if (new Set(input.slots).size !== input.slots.length) {
+    throw new Error("Slots must be unique within a round.");
   }
   const now = new Date();
   const id = randomUUID();
@@ -50,14 +50,14 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     deadline: input.deadline,
     deadlineProcessedAt: null,
     availabilityResponses: [],
-    selectedDate: null,
+    selectedSlot: null,
     selectedHostUserId: null,
     finalizedAt: null,
     createdAt: now,
     updatedAt: now,
-    candidateDates: [...input.candidateDates]
+    candidateSlots: [...input.slots]
       .sort((left, right) => left.localeCompare(right))
-      .map((date) => ({ date })), // ["2026-12-04"] -> [{ date: "2026-12-04" }]
+      .map((value) => ({ value })),
   };
   await (await rounds()).insertOne(round);
   return round;
@@ -97,14 +97,14 @@ export async function findExpiredRounds(now: Date): Promise<PlanningRoundDocumen
 }
 
 /** Persists a decided availability day while leaving the overall round open. */
-export async function selectAvailabilityDate(
+export async function selectAvailabilitySlot(
   roundId: string,
-  date: string,
+  slot: string,
   closedAt: Date,
 ): Promise<boolean> {
   const result = await (await rounds()).updateOne(
     { _id: roundId, status: "open", deadlineProcessedAt: null },
-    { $set: { selectedDate: date, deadlineProcessedAt: closedAt, updatedAt: closedAt } },
+    { $set: { selectedSlot: slot, deadlineProcessedAt: closedAt, updatedAt: closedAt } },
   );
   return result.modifiedCount === 1;
 }
