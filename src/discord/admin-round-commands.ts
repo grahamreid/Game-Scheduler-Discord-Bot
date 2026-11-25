@@ -1,7 +1,6 @@
 /**
  * Handles the administrator-only `/round` commands and wipe confirmation.
- * Member-facing availability interaction stays in availability-menu.ts because
- * it has different permissions and a separate component lifecycle.
+ * Member-facing round controls live in round-post.ts.
  */
 import {
   ActionRowBuilder,
@@ -20,7 +19,7 @@ import { findGuildSchedulingSettings, saveGuildSchedulingSettings } from "../db/
 import { getDatabase } from "../db/mongo";
 import { createPlanningRound, wipeGuildRounds, type PlanningRoundDocument } from "../db/planning-rounds";
 import { daysForCadence, generateRoundSlots } from "../slot-generation";
-import { buildAvailabilityMessage } from "./availability-menu";
+import { buildRoundPost } from "./round-post";
 import { parseCadence, parseCalendarDate, parseDeadline, parseSurveyLaunchTime } from "./command-parsers";
 import { wipeCancelPrefix, wipeConfirmPrefix } from "./constants";
 
@@ -117,8 +116,8 @@ async function handleCreateRound(interaction: ChatInputCommandInteraction): Prom
       slots,
     });
     if (interaction.channel === null || !interaction.channel.isSendable()) throw new Error("Run this command in a text channel.");
-    await interaction.channel.send(buildAvailabilityMessage(round));
-    await interaction.editReply(`Created round \`${round._id}\` and posted its availability menu.`);
+    await interaction.channel.send(buildRoundPost(round));
+    await interaction.editReply(`Created round \`${round._id}\` and posted its availability form button.`);
   } catch (error) {
     console.error("/round create failed:", error instanceof Error ? error.stack : String(error));
     const message = error instanceof Error ? error.message : "Could not create the round.";

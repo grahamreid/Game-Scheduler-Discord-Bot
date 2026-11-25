@@ -6,10 +6,11 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 import { ensureDatabaseIndexes } from "./db/setup";
 import { activityCommand, handleActivityCommand } from "./discord/activity-commands";
-import { handleActivitySuggestionModal } from "./discord/activity-suggestion-modal";
 import { handleAdminRoundCommand, handleRoundWipeButton } from "./discord/admin-round-commands";
-import { handleAvailabilityMenu } from "./discord/availability-menu";
+import { handleAvailabilityFormButton } from "./discord/round-post";
+import { availabilityFormButtonPrefix } from "./discord/constants";
 import { roundCommand } from "./discord/round-command-definition";
+import { handleRoundResponseModal } from "./discord/round-response-modal";
 import { startLocalRoundCloser } from "./scheduling/local-round-closer";
 
 const token = process.env.DISCORD_TOKEN;
@@ -49,7 +50,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
     const subcommand = interaction.options.getSubcommand(false);
     operation = subcommand ? `/${interaction.commandName} ${subcommand}` : `/${interaction.commandName}`;
-  } else if (interaction.isStringSelectMenu() || interaction.isModalSubmit() || interaction.isButton()) {
+  } else if (interaction.isModalSubmit() || interaction.isButton()) {
     // Some Component IDs have a round or user ID after the operation name.
     operation = interaction.customId.split(":", 1)[0];
   } else {
@@ -62,12 +63,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await handleAdminRoundCommand(interaction);
     } else if (interaction.isChatInputCommand() && interaction.commandName === "activity") {
       await handleActivityCommand(interaction);
-    } else if (interaction.isStringSelectMenu()) {
-      await handleAvailabilityMenu(interaction);
     } else if (interaction.isModalSubmit()) {
-      await handleActivitySuggestionModal(interaction);
+      await handleRoundResponseModal(interaction);
     } else if (interaction.isButton()) {
-      await handleRoundWipeButton(interaction);
+      if (interaction.customId.startsWith(availabilityFormButtonPrefix)) {
+        await handleAvailabilityFormButton(interaction);
+      } else {
+        await handleRoundWipeButton(interaction);
+      }
     }
   } catch (error) {
     console.error(`Discord interaction failed: ${operation}`, error instanceof Error ? error.stack : String(error));

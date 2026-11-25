@@ -45,8 +45,9 @@ src/
 | `src/discord/command-parsers.ts` | Validates and normalizes slash-command text before an administrator handler writes data. |
 | `src/discord/round-command-definition.ts` | Declares the `/round` command and its options for Discord's command picker. |
 | `src/discord/admin-round-commands.ts` | Routes and handles administrator `/round` commands, including create, configuration, status, and destructive wipe confirmation. |
-| `src/discord/availability-menu.ts` | Builds the shared slot menu and handles each member's individual selection. Kept separate because component interactions differ from slash commands. |
-| `src/discord/activity-suggestion-modal.ts` | Opens and handles the optional private free-text suggestion that follows availability submission. |
+| `src/discord/round-post.ts` | Builds the shared round post and handles the button that opens a member's private form. |
+| `src/discord/round-response-modal.ts` | Assembles the private round response form and coordinates saving its fields. |
+| `src/discord/activity-suggestion-modal.ts` | Defines the activity suggestion field and saves its value. |
 | `src/discord/activity-commands.ts` | Defines `/activity history` and returns the guild's private searchable activity catalog. |
 | `src/availability.ts` | Availability rules: validates current submissions, tallies selections, and chooses a winning slot. |
 | `src/slot-generation.ts` | Calendar-only logic that turns a scheduled survey date and options into dated availability slot labels. Kept separate so manual and future automated round creation use identical rules. |

@@ -11,15 +11,15 @@
 - The MVP uses manual end-to-end validation through the private Discord server.
   Unit tests will be added later for programmatic validation.
 - Availability is multi-select and uses the round's scheduled deadline. A
-  member may re-submit the shared menu before the deadline; their latest
+  member may reopen and resubmit their form before the deadline. Their latest
   response replaces their earlier one.
 - Creating a newer planning round automatically cancels any earlier active
   round in the same guild.
 - The most popular slot wins. A tie selects the alphabetically earlier slot.
 - Activity suggestions are non-binding discussion input; do not automatically
   select an activity winner.
-- Each member may submit one optional free-text activity suggestion immediately
-  after availability. The name enters the searchable catalog immediately. Only
+- Each member may submit one optional free-text activity suggestion in the
+  availability form. The name enters the searchable catalog immediately. Only
   selected-slot attendees' suggestions become candidates for that round.
 - Activity names are deduplicated case-insensitively within a guild. More
   sophisticated consolidation remains deferred; provide administrative cleanup

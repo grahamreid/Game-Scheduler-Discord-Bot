@@ -123,8 +123,8 @@ those values.
 
 ## Activity suggestions and discussion votes
 
-Immediately after a member saves availability, Discord opens a private optional
-free-text activity-suggestion modal. The bot case-insensitively deduplicates
+The shared round post opens a private form with a multi-select for availability
+and one optional free-text activity suggestion. The bot case-insensitively deduplicates
 activity names within a guild and saves one current suggestion per member per
 round. Once availability selects a slot, only suggestions from members
 available for that slot become activity-poll candidates.
@@ -135,9 +135,8 @@ Replacing a round suggestion leaves its previous name in the catalog, where
 it still counts toward the creator's quota. The count and write are separate
 operations, so simultaneous requests near the limit can exceed it.
 
-Members can add or replace their suggestion by selecting their availability
-again before the deadline. Submitting the modal with a blank suggestion keeps
-the previous choice.
+Members can reopen the form to revise their response. The form preselects the
+member's saved slots. Leaving the suggestion blank keeps the previous choice.
 
 `/activity history` searches the guild's full catalog, including names added
 during open rounds and names from cancelled rounds. Statistics use every

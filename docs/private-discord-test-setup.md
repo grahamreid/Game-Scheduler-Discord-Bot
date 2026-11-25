@@ -112,7 +112,7 @@ Leave `MONGODB_URI` pointing at your chosen local MongoDB setup. Do not commit
 
 The next implementation slice will add command registration and a local bot
 process. At that point you will run `npm run dev`, use `/round create` in the
-private server, and test the availability menu in `#board-game-test`.
+private server, and test the availability form in `#board-game-test`.
 
 ## First command test
 
@@ -130,9 +130,10 @@ Server** can run:
 /round create deadline:1h title:Test round
 ```
 
-The command replies privately with the newly created round ID and posts a shared
-availability menu in the channel. Each member may select one or more slots and
-re-submit before the deadline; their confirmation is visible only to them.
+The command replies privately with the newly created round ID and posts a
+**Submit availability** button in the channel. Each member can use it to open
+their own form, pick one or more slots, and optionally suggest an activity.
+Reopening the form preselects saved slots. The confirmation is private.
 
 Before creating recurring-style rounds, an administrator can save the guild's
 defaults (the first date is for future automated creation; manual creation uses

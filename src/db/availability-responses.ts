@@ -25,6 +25,11 @@ export async function findAvailabilityResponses(roundId: string): Promise<Availa
   return (await responses()).find({ roundId }).toArray();
 }
 
+/** Loads a member's previous selections when they reopen the availability form. */
+export async function findMemberAvailability(roundId: string, userId: string): Promise<AvailabilityResponse | null> {
+  return (await responses()).findOne({ roundId, userId });
+}
+
 /** Counts submitted member responses without loading every response document. */
 export async function countAvailabilityResponses(roundId: string): Promise<number> {
   return (await responses()).countDocuments({ roundId });

@@ -2,8 +2,8 @@
  * Shared fixed values for Discord interactions. Keeping IDs and mappings here
  * prevents handlers from relying on duplicated string literals.
  */
-export const availabilityCustomIdPrefix = "availability:";
-export const activitySuggestionModalPrefix = "activity-suggestion:";
+export const availabilityFormButtonPrefix = "availability-form-button:";
+export const availabilityFormModalPrefix = "availability-form:";
 export const wipeConfirmPrefix = "round-wipe-confirm:";
 export const wipeCancelPrefix = "round-wipe-cancel:";
 
