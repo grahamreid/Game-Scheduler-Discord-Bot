@@ -4,8 +4,9 @@
  */
 import type { Collection } from "mongodb";
 import { randomUUID } from "node:crypto";
-import type { CandidateSlot, PlanningRound } from "../types";
+import type { CandidateSlot, PlanningRound, VenuePreference } from "../types";
 import { deleteGuildActivityPolls } from "./activity-polls";
+import { findVirtualPreferenceUserIds } from "./member-preferences";
 import { getDatabase } from "./mongo";
 
 /** The data supplied when opening a planning round. */
@@ -40,6 +41,11 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
   if (new Set(input.slots).size !== input.slots.length) {
     throw new Error("Slots must be unique within a round.");
   }
+  const planningRounds = await rounds();
+  const [lastFinalizedRound, virtualPreferenceUserIds] = await Promise.all([
+    planningRounds.findOne({ guildId: input.guildId, status: "finalized" }, { sort: { finalizedAt: -1 }, projection: { host: 1 } }),
+    findVirtualPreferenceUserIds(input.guildId),
+  ]);
   const now = new Date();
   const id = randomUUID();
   await cancelActiveRoundsForGuild(input.guildId, now);
@@ -53,7 +59,9 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     minimumAttendeeCount: input.minimumAttendeeCount,
     selectedSlot: null,
     eventDate: null,
-    selectedHostUserId: null,
+    host: null,
+    venuePolicy: lastFinalizedRound?.host === "virtual" ? "in-person" : "either",
+    virtualPreferenceUserIds,
     finalizedAt: null,
     createdAt: now,
     updatedAt: now,
@@ -61,8 +69,19 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
       .sort((left, right) => left.localeCompare(right))
       .map((value) => ({ value })),
   };
-  await (await rounds()).insertOne(round);
+  await planningRounds.insertOne(round);
   return round;
+}
+
+/** Updates one member's preference for an open round that offers a choice. */
+export async function setRoundVenuePreference(roundId: string, userId: string, venue: VenuePreference): Promise<boolean> {
+  const result = await (await rounds()).updateOne(
+    { _id: roundId, status: "open", venuePolicy: "either" },
+    venue === "virtual"
+      ? { $addToSet: { virtualPreferenceUserIds: userId } }
+      : { $pull: { virtualPreferenceUserIds: userId } },
+  );
+  return result.matchedCount === 1;
 }
 
 /** Looks up a round by its ID, or returns null when it is absent. */
@@ -107,17 +126,18 @@ export async function findExpiredRounds(now: Date): Promise<PlanningRoundDocumen
   }).toArray();
 }
 
-/** Records the winning slot and finalizes the round in one write. */
+/** Records the winning slot and host choice and finalizes the round in one write. */
 export async function finalizePlanningRound(
   roundId: string,
   slot: string,
+  host: string,
   closedAt: Date,
 ): Promise<boolean> {
   // Every generated slot starts with its YYYY-MM-DD calendar date.
   const eventDate = slot.slice(0, 10);
   const result = await (await rounds()).updateOne(
     { _id: roundId, status: "open" },
-    { $set: { status: "finalized", selectedSlot: slot, eventDate, finalizedAt: closedAt, updatedAt: closedAt } },
+    { $set: { status: "finalized", selectedSlot: slot, eventDate, host, finalizedAt: closedAt, updatedAt: closedAt } },
   );
   return result.modifiedCount === 1;
 }

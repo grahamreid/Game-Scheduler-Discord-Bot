@@ -26,14 +26,13 @@ share the same `MONGODB_URI`.
 ## Round workflow
 
 1. An administrator creates an `open` round with possible event slots and an
-   overall deadline.
-2. Members select every date that works for them. Activity suggestions/votes
-   and host volunteering can be collected during the same `open` period.
+   overall deadline. The round records who currently prefers virtual.
+2. Members select the slots that work for them and can suggest an activity.
 3. At the deadline, the scheduler counts availability. A tie selects the
    alphabetically earlier slot.
-4. The winning date, activity suggestions, and eligible least-recent host are
-   announced. The round becomes `finalized`, or `cancelled` for insufficient
-   turnout.
+4. The round becomes `finalized` with a winning slot and attendee list, or
+   `cancelled` for insufficient turnout. Eligible suggestions get a separate
+   activity poll. Host selection is planned for a later phase.
 
 The complete status list is deliberately small: `open`, `finalized`, and
 `cancelled`.
@@ -50,11 +49,15 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 planningRounds
   _id, guildId, channelId, status, title, deadline,
   candidateSlots: [ { value } ],
-  minimumAttendeeCount, selectedSlot, eventDate, selectedHostUserId, finalizedAt, createdAt, updatedAt
+  minimumAttendeeCount, selectedSlot, eventDate, host, venuePolicy, virtualPreferenceUserIds,
+  finalizedAt, createdAt, updatedAt
 
 guildSchedulingSettings
   guildId, cadence, firstSurveyDate, surveyLaunchTime, surveyTimeZone, defaultDeadline,
   minimumAttendeeCount, splitWeekendSlots, createdAt, updatedAt
+
+memberPreferences
+  _id, guildId, userId, venue (optional)
 
 availabilityResponses
   roundId, userId, slots, submittedAt
@@ -120,6 +123,30 @@ Weekdays represent evenings implicitly; no time is assigned yet.
 `/round initialize-settings`. Every round therefore has configured cadence,
 weekend-splitting, and deadline defaults; per-round arguments may override
 those values.
+
+## Member preferences and hosting
+
+`/preferences venue` shows the caller's current server preference privately.
+Members can also pass `format: In person` or `format: Virtual` to update it.
+The `memberPreferences` collection has one record per guild and member and can
+hold additional preferences later. Round wipes preserve these records.
+
+Each new round saves the user IDs that preferred virtual at launch in
+`virtualPreferenceUserIds`. Members outside that list default to in person.
+Changes to a saved server preference apply to future rounds. For a round that
+allows either format, the response form starts with the member's current
+round choice. Changing it adds or removes their ID from the round's list.
+
+The opening post says which formats the round offers. If the most recently
+finalized round in the guild was virtual, the next round is in person only
+and its form omits the venue picker. Otherwise it offers either format. At
+closure, a round that offers either format becomes virtual if any attendee
+available for the winning slot prefers virtual.
+
+The host starts as `null`. Closing a successful round sets it to `"virtual"`
+or `"in-person"` and the announcement shows the selected venue. The latter
+value is a placeholder until host selection can store a Discord user ID. Older
+open rounds without a venue policy close as in-person sessions.
 
 ## Activity suggestions and discussion votes
 

@@ -5,7 +5,6 @@
  */
 import type { AvailabilityDecision } from "./availability";
 import { prepareActivityPoll, type ActivityPollChoices } from "./activity-voting";
-import { findAvailabilityResponses } from "./db/availability-responses";
 import { findPlanningRound } from "./db/planning-rounds";
 import { closeExpiredRounds } from "./scheduling/close-round";
 
@@ -16,6 +15,7 @@ export interface AvailabilityClosureResult {
   title: string | null;
   minimumAttendeeCount: number;
   decision: AvailabilityDecision;
+  host: string | null;
   /** Members available for the winning slot; empty when the round was cancelled. */
   attendingUserIds: string[];
   activityPoll: ActivityPollChoices | null;
@@ -30,22 +30,17 @@ export async function closeExpiredRoundsAndPrepareResults(now = new Date()): Pro
     if (!closingResult.closedByThisRun) continue;
     const round = await findPlanningRound(closingResult.roundId);
     if (round === null) continue;
-    const responses = await findAvailabilityResponses(round._id);
-    let attendingUserIds: string[] = [];
-    let activityPoll: ActivityPollChoices | null = null;
-    if (closingResult.decision.kind === "selected") {
-      const selectedSlot = closingResult.decision.slot;
-      attendingUserIds = responses
-        .filter((response) => response.slots.includes(selectedSlot))
-        .map((response) => response.userId);
-      activityPoll = await prepareActivityPoll(round._id, round.guildId, attendingUserIds, now);
-    }
+    const { attendingUserIds } = closingResult;
+    const activityPoll = closingResult.decision.kind === "selected"
+      ? await prepareActivityPoll(round._id, round.guildId, attendingUserIds, now)
+      : null;
     preparedResults.push({
       guildId: round.guildId,
       channelId: round.channelId,
       title: round.title,
       minimumAttendeeCount: round.minimumAttendeeCount,
       decision: closingResult.decision,
+      host: round.host,
       attendingUserIds,
       activityPoll,
     });

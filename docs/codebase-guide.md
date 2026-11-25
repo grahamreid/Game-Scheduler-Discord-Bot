@@ -40,6 +40,7 @@ src/
 | `src/db/activities.ts` | Stores guild-local deduplicated activity names and calculates small-guild activity history statistics on demand. |
 | `src/db/activity-suggestions.ts` | Stores each member's one current private suggestion for a planning round. |
 | `src/db/guild-scheduling-settings.ts` | Stores cadence, initial survey date/time and IANA timezone, deadline, and weekend-splitting defaults per Discord server. |
+| `src/db/member-preferences.ts` | Stores a member's preferences for one Discord server and loads the virtual preference IDs when a round opens. |
 | `src/db/setup.ts` | Creates indexes that make ID and deadline lookups efficient. |
 | `src/discord/constants.ts` | Holds Discord component-ID prefixes and the shared US-timezone abbreviation mapping. |
 | `src/discord/command-parsers.ts` | Validates and normalizes slash-command text before an administrator handler writes data. |
@@ -49,6 +50,7 @@ src/
 | `src/discord/round-response-modal.ts` | Assembles the private round response form and coordinates saving its fields. |
 | `src/discord/activity-suggestion-modal.ts` | Defines the activity suggestion field and saves its value. |
 | `src/discord/activity-commands.ts` | Defines `/activity history` and returns the guild's private searchable activity catalog. |
+| `src/discord/preferences-command.ts` | Defines `/preferences venue` and privately shows or saves the member's server preference. |
 | `src/availability.ts` | Availability rules: validates current submissions, tallies selections, and chooses a winning slot. |
 | `src/slot-generation.ts` | Calendar-only logic that turns a scheduled survey date and options into dated availability slot labels. Kept separate so manual and future automated round creation use identical rules. |
 | `src/round-result-workflow.ts` | Application workflow that closes expired availability polls and prepares result data, including the selected-slot attendees, without depending on Discord. |

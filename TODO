@@ -1,4 +1,10 @@
 * Next implementation work
+** Hosting and round result
+*** Collect host volunteers in the initial round form and keep hosting history.
+*** Choose the least recent host among volunteers available for the selected
+    slot.
+*** Add the host and location or joining details to the round announcement.
+    The availability result already shows the selected slot and attendees.
 ** Manual round controls
 *** Add an administrator command to close the current round immediately using
     the same workflow as scheduled closure.
@@ -9,22 +15,6 @@
 *** If the cutoff arrives before all ballots are in, post partial totals. Post
     updated totals once everyone has voted, through the end of the event date
     in the guild's timezone. If everyone votes before the cutoff, post once.
-** Hosting and round result
-*** Collect host volunteers in the initial round form and keep hosting history.
-*** Choose the least recent host among volunteers available for the selected
-    slot.
-*** Add the host and location or joining details to the round announcement.
-    The availability result already shows the selected slot and attendees.
-** Virtual versus in-person sessions
-*** Add a one-time command that polls members for their global virtual versus
-    in-person preference.
-*** State each round's allowed formats in the initial post: in-person only,
-    virtual only, or either. If the last session was virtual, make the next
-    one in-person only. Otherwise allow either.
-*** For rounds that allow either format, let members optionally indicate their
-    preference in the initial form. Use their global preference when omitted.
-*** Make the selected session virtual if at least one attendee available on
-    the selected slot prefers virtual, using the per-round preference when given.
 
 * Recurrence and notifications
 ** Save the scheduling channel in guild settings and scope round actions to
@@ -37,6 +27,17 @@
 
 * Manual Discord validation
 ** Use multiple legitimate, manually operated accounts in the private server.
+** As a regular member, run =/preferences venue= to see the in-person default,
+   then save Virtual and confirm it reads back privately. Open a round and
+   check =host= and =virtualPreferenceUserIds= in MongoDB. Change that member's
+   preference to In person and set another member's to Virtual. Open a second
+   round and confirm that each round kept the preferences from when it opened.
+   Confirm preferences survive =/round wipe=.
+** For a round that offers either format, change the venue in the response
+   form and reopen the form to check that the new choice stayed selected.
+   Check that a virtual preference only changes the result when the member
+   is available for the winning slot. After a virtual result, confirm that
+   the next opening post says in person only and omits the venue picker.
 ** Check that members without Manage Server cannot use either wipe command.
    Check whether Discord hides the commands for those members.
 ** Check that creating a newer round cancels the previous open one and that
@@ -57,6 +58,8 @@
    logs and interaction captures.
 ** Move validation out of workflow functions where that makes the core logic
    easier to read.
+** clarify in suggestion input that they can browse activity history oustide of the modal/form
+** don't say "your activity was unchanged", just say what their current suggestion is.
 
 * Later product ideas
 ** Add an admin =/activity delete= command for unwanted or duplicate activities.

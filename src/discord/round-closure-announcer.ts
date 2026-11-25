@@ -18,8 +18,9 @@ export async function announceRoundClosures(
       throw new Error(`Round result has no sendable Discord channel: ${result.channelId}.`);
     }
     const title = result.title ?? "Board-game Scheduling";
+    const venue = result.host === "virtual" ? "Virtual" : "In person";
     const content = result.decision.kind === "selected"
-      ? `**${title}** availability has closed.\nSelected slot: **${result.decision.slot}**\nAttending: ${attendeeMentions(result.attendingUserIds)}`
+      ? `**${title}** availability has closed.\nSelected slot: **${result.decision.slot}**\nVenue: **${venue}**\nAttending: ${attendeeMentions(result.attendingUserIds)}`
       : `**${title}** availability has closed.\nNo slot reached the required ${result.minimumAttendeeCount} attendees (highest: ${result.decision.attendeeCount}). This round has been cancelled.`;
     await channel.send({
       content,

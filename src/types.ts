@@ -15,6 +15,19 @@ export interface CandidateSlot {
 /** The supported intervals between planned events for one Discord guild. */
 export type RoundCadence = "weekly" | "biweekly";
 
+/** How a member prefers to join a session. */
+export type VenuePreference = "in-person" | "virtual";
+
+/** Formats the opening post offers before the winning slot is known. */
+export type RoundVenuePolicy = "in-person" | "either";
+
+/** Preferences a Discord member saves for future rounds in one guild. */
+export interface MemberPreferences {
+  guildId: string;
+  userId: string;
+  venue?: VenuePreference;
+}
+
 /** Per-guild settings used to generate dated availability slots. */
 export interface GuildSchedulingSettings {
   guildId: string;
@@ -49,7 +62,11 @@ export interface PlanningRound {
   selectedSlot: string | null;
   /** Local calendar date of the selected slot, set when the round is finalized. */
   eventDate: string | null;
-  selectedHostUserId: string | null;
+  /** A Discord user ID, "in-person" while a host is pending, "virtual", or null before selection. */
+  host: string | null;
+  venuePolicy: RoundVenuePolicy;
+  /** Members who prefer virtual for this round, initialized from saved preferences when it opens. */
+  virtualPreferenceUserIds: string[];
   finalizedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

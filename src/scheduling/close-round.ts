@@ -15,6 +15,7 @@ import {
 export interface RoundClosingResult {
   roundId: string;
   decision: AvailabilityDecision;
+  attendingUserIds: string[];
   /** True only when this process successfully persisted the availability closure. */
   closedByThisRun: boolean;
 }
@@ -28,10 +29,20 @@ export async function closeRound(round: PlanningRoundDocument, closedAt = new Da
     ? round.minimumAttendeeCount
     : 3;
   const decision = determineWinningSlot(round.candidateSlots, responses, minimumAttendeeCount);
-  const closedByThisRun = decision.kind === "selected"
-    ? await finalizePlanningRound(round._id, decision.slot, closedAt)
-    : await cancelForInsufficientAvailability(round._id, closedAt);
-  return { roundId: round._id, decision, closedByThisRun };
+  if (decision.kind === "cancelled") {
+    const closedByThisRun = await cancelForInsufficientAvailability(round._id, closedAt);
+    return { roundId: round._id, decision, attendingUserIds: [], closedByThisRun };
+  }
+
+  const selectedSlot = decision.slot;
+  const attendingUserIds = responses
+    .filter(({ slots }) => slots.includes(selectedSlot))
+    .map(({ userId }) => userId);
+  const isVirtual = round.venuePolicy === "either"
+    && attendingUserIds.some((userId) => round.virtualPreferenceUserIds.includes(userId));
+  const host = isVirtual ? "virtual" : "in-person";
+  const closedByThisRun = await finalizePlanningRound(round._id, selectedSlot, host, closedAt);
+  return { roundId: round._id, decision, attendingUserIds, closedByThisRun };
 }
 
 /** Closes every round whose configured deadline has passed. Safe to call repeatedly. */

@@ -36,10 +36,18 @@
   and availability responses are kept.
 - A selected host must volunteer and be available on the selected date. Among
   eligible volunteers, choose the least-recent host.
+- Members can read and save their server preference with `/preferences venue`.
+  Each round records who preferred virtual at launch. Everyone else defaults
+  to in person. Members can change their choice in the response form when the
+  round offers either format.
+- The most recently finalized virtual session makes the next round in person
+  only. Otherwise a round becomes virtual if someone available for the winning
+  slot prefers virtual. The host field uses `"in-person"` until an individual
+  host can be selected.
 - `/round wipe` is administrator-only, confirms through a private Discord
   button, and deletes the current guild's rounds along with their availability
   responses, activity suggestions, polls, and ballots. It keeps the guild's
-  activity catalog.
+  activity catalog and member preferences.
 - Guild scheduling settings support `weekly` and `biweekly` cadence, a first
   automated-survey date/time, a default availability deadline, and an optional
   weekend Afternoon/Evening split. They also define the minimum number of
@@ -51,15 +59,14 @@
 
 ## Implementation sequence
 
-1. Add manual controls for closing a round and testing date-based behavior.
+1. Collect host volunteers, select an eligible host using hosting history, and
+   include the host and location in the round result.
+2. Add manual controls for closing a round and testing date-based behavior.
    Validate the existing activity voting flow in the private Discord server,
    then add the second activity totals post.
-2. Collect host volunteers in the initial form, select a host using attendance
-   and hosting history, and include the host and location in the round result.
-3. Add session format preferences and use them to decide how attendees meet.
-4. Configure the scheduling channel, automate recurring round creation, and
+3. Configure the scheduling channel, automate recurring round creation, and
    send day-before reminders for upcoming sessions.
-5. Validate the full flow in the private server, then deploy with an external
+4. Validate the full flow in the private server, then deploy with an external
    scheduler and roll it out to the real server. EventBridge, Lambda, and API
    Gateway remain AWS options.
 

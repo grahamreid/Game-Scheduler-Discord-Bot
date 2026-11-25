@@ -19,6 +19,8 @@ export async function ensureDatabaseIndexes(): Promise<void> {
   await ensureIndex(availabilityResponses, "responses_by_round", { roundId: 1 });
   const guildSchedulingSettings = database.collection("guildSchedulingSettings");
   await ensureIndex(guildSchedulingSettings, "one_scheduling_setting_per_guild", { guildId: 1 }, true);
+  const memberPreferences = database.collection("memberPreferences");
+  await ensureIndex(memberPreferences, "one_preference_record_per_guild_member", { guildId: 1, userId: 1 }, true);
   const activities = database.collection("activities");
   await ensureIndex(activities, "one_normalized_activity_per_guild", { guildId: 1, normalizedName: 1 }, true);
   const activitySuggestions = database.collection("activitySuggestions");

@@ -25,9 +25,12 @@ export function buildRoundPost(round: PlanningRoundDocument): {
     .setStyle(ButtonStyle.Primary);
 
   const title = round.title === null ? "Board-game Scheduling" : round.title;
+  const venueDescription = round.venuePolicy === "either"
+    ? "**Venue: In person or virtual.** The session will be virtual if anyone available for the selected slot prefers it."
+    : "**Venue: In person only.**";
   return {
     // Sends a Discord timestamp templated to show in relative time until the deadline.
-    content: `**${title}**\nChoose your available slots and optionally suggest an activity. You can reopen the form to make changes. Responses close <t:${Math.floor(round.deadline.getTime() / 1000)}:R>.`,
+    content: `**${title}**\n${venueDescription}\nChoose your available slots and optionally suggest an activity. You can reopen the form to make changes. Responses close <t:${Math.floor(round.deadline.getTime() / 1000)}:R>.`,
     components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)],
   };
 }
@@ -48,7 +51,7 @@ export async function handleAvailabilityFormButton(interaction: ButtonInteractio
       });
       return;
     }
-    await interaction.showModal(buildRoundResponseModal(round, previous?.slots ?? []));
+    await interaction.showModal(buildRoundResponseModal(round, interaction.user.id, previous?.slots ?? []));
   } catch (error) {
     console.error(`Could not open availability form for round ${roundId}:`, error instanceof Error ? error.stack : String(error));
     if (!interaction.replied) {

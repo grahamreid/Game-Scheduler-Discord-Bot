@@ -12,6 +12,7 @@ import { handleAvailabilityFormButton } from "./discord/round-post";
 import { activityVoteMenuPrefix, availabilityFormButtonPrefix } from "./discord/constants";
 import { roundCommand } from "./discord/round-command-definition";
 import { handleRoundResponseModal } from "./discord/round-response-modal";
+import { handlePreferencesCommand, preferencesCommand } from "./discord/preferences-command";
 import { startLocalRoundCloser } from "./scheduling/local-round-closer";
 
 const token = process.env.DISCORD_TOKEN;
@@ -37,7 +38,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   await ensureDatabaseIndexes();
   console.log("MongoDB indexes ready. Registering test-guild commands.");
   const guild = await readyClient.guilds.fetch(testGuildId);
-  await guild.commands.set([roundCommand.toJSON(), activityCommand.toJSON()]);
+  await guild.commands.set([roundCommand.toJSON(), activityCommand.toJSON(), preferencesCommand.toJSON()]);
   console.log(`Logged in as ${readyClient.user.tag}; test-guild commands registered.`);
   if (process.env.ENABLE_LOCAL_ROUND_CLOSER === "true") {
     const interval = localRoundCloserInterval();
@@ -64,6 +65,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await handleAdminRoundCommand(interaction);
     } else if (interaction.isChatInputCommand() && interaction.commandName === "activity") {
       await handleActivityCommand(interaction);
+    } else if (interaction.isChatInputCommand() && interaction.commandName === "preferences") {
+      await handlePreferencesCommand(interaction);
     } else if (interaction.isStringSelectMenu() && interaction.customId.startsWith(activityVoteMenuPrefix)) {
       await handleActivityVote(interaction);
     } else if (interaction.isModalSubmit()) {

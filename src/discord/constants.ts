@@ -2,11 +2,18 @@
  * Shared fixed values for Discord interactions. Keeping IDs and mappings here
  * prevents handlers from relying on duplicated string literals.
  */
+import type { VenuePreference } from "../types";
+
 export const availabilityFormButtonPrefix = "availability-form-button:";
 export const availabilityFormModalPrefix = "availability-form:";
 export const activityVoteMenuPrefix = "activity-vote:";
 export const wipeConfirmPrefix = "round-wipe-confirm:";
 export const wipeCancelPrefix = "round-wipe-cancel:";
+
+export const venueLabels: Record<VenuePreference, string> = {
+  "in-person": "In person",
+  "virtual": "Virtual",
+};
 
 /** Maps common US abbreviations, including DST variants, to scheduler-ready IANA zones. */
 export const ianaTimeZoneByAbbreviation: Record<string, string> = {
