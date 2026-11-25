@@ -8,7 +8,7 @@ import { findAvailabilityResponses } from "../db/availability-responses";
 import {
   cancelForInsufficientAvailability,
   findExpiredRounds,
-  selectAvailabilitySlot,
+  finalizePlanningRound,
   type PlanningRoundDocument,
 } from "../db/planning-rounds";
 
@@ -29,7 +29,7 @@ export async function closeRound(round: PlanningRoundDocument, closedAt = new Da
     : 3;
   const decision = determineWinningSlot(round.candidateSlots, responses, minimumAttendeeCount);
   const closedByThisRun = decision.kind === "selected"
-    ? await selectAvailabilitySlot(round._id, decision.slot, closedAt)
+    ? await finalizePlanningRound(round._id, decision.slot, closedAt)
     : await cancelForInsufficientAvailability(round._id, closedAt);
   return { roundId: round._id, decision, closedByThisRun };
 }

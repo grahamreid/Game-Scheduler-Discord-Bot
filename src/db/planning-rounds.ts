@@ -30,7 +30,7 @@ async function rounds(): Promise<Collection<PlanningRoundDocument>> {
 async function cancelActiveRoundsForGuild(guildId: string, cancelledAt: Date): Promise<void> {
   await (await rounds()).updateMany(
     { guildId, status: "open" },
-    { $set: { status: "cancelled", deadlineProcessedAt: cancelledAt, updatedAt: cancelledAt } },
+    { $set: { status: "cancelled", updatedAt: cancelledAt } },
   );
 }
 
@@ -49,7 +49,6 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     status: "open",
     title: input.title ?? null,
     deadline: input.deadline,
-    deadlineProcessedAt: null,
     minimumAttendeeCount: input.minimumAttendeeCount,
     selectedSlot: null,
     selectedHostUserId: null,
@@ -68,11 +67,6 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
 export async function findPlanningRound(id: string): Promise<PlanningRoundDocument | null> {
   const round = await (await rounds()).findOne({ _id: id });
   return round;
-}
-
-/** Finds the one current round for a guild, if that guild is planning one. */
-export async function findOpenPlanningRound(guildId: string): Promise<PlanningRoundDocument | null> {
-  return (await rounds()).findOne({ guildId, status: "open" }, { sort: { createdAt: -1 } });
 }
 
 /**
@@ -95,20 +89,19 @@ export async function wipeGuildRounds(guildId: string): Promise<number> {
 export async function findExpiredRounds(now: Date): Promise<PlanningRoundDocument[]> {
   return (await rounds()).find({
     status: "open",
-    deadlineProcessedAt: null,
     deadline: { $lte: now },
   }).toArray();
 }
 
-/** Persists a decided availability day while leaving the overall round open. */
-export async function selectAvailabilitySlot(
+/** Records the winning slot and finalizes the round in one write. */
+export async function finalizePlanningRound(
   roundId: string,
   slot: string,
   closedAt: Date,
 ): Promise<boolean> {
   const result = await (await rounds()).updateOne(
-    { _id: roundId, status: "open", deadlineProcessedAt: null },
-    { $set: { selectedSlot: slot, deadlineProcessedAt: closedAt, updatedAt: closedAt } },
+    { _id: roundId, status: "open" },
+    { $set: { status: "finalized", selectedSlot: slot, finalizedAt: closedAt, updatedAt: closedAt } },
   );
   return result.modifiedCount === 1;
 }
@@ -116,8 +109,8 @@ export async function selectAvailabilitySlot(
 /** Cancels a round when no candidate slot reaches its configured attendance minimum. */
 export async function cancelForInsufficientAvailability(roundId: string, closedAt: Date): Promise<boolean> {
   const result = await (await rounds()).updateOne(
-    { _id: roundId, status: "open", deadlineProcessedAt: null },
-    { $set: { status: "cancelled", deadlineProcessedAt: closedAt, updatedAt: closedAt } },
+    { _id: roundId, status: "open" },
+    { $set: { status: "cancelled", updatedAt: closedAt } },
   );
   return result.modifiedCount === 1;
 }

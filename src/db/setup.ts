@@ -19,6 +19,15 @@ export async function ensureDatabaseIndexes(): Promise<void> {
   await ensureIndex(availabilityResponses, "responses_by_round", { roundId: 1 });
   const guildSchedulingSettings = database.collection("guildSchedulingSettings");
   await ensureIndex(guildSchedulingSettings, "one_scheduling_setting_per_guild", { guildId: 1 }, true);
+  const activities = database.collection("activities");
+  await ensureIndex(activities, "one_normalized_activity_per_guild", { guildId: 1, normalizedName: 1 }, true);
+  const activitySuggestions = database.collection("activitySuggestions");
+  await ensureIndex(activitySuggestions, "one_suggestion_per_member_per_round", { roundId: 1, userId: 1 }, true);
+  await ensureIndex(activitySuggestions, "suggestions_by_round", { roundId: 1 });
+  const roundActivityPolls = database.collection("roundActivityPolls");
+  await ensureIndex(roundActivityPolls, "one_activity_poll_per_round", { roundId: 1 }, true);
+  const activityVotes = database.collection("activityVotes");
+  await ensureIndex(activityVotes, "one_vote_per_activity_per_member", { roundId: 1, userId: 1, activityId: 1 }, true);
 }
 
 /** Replaces an outdated named index instead of letting an old local schema block startup. */

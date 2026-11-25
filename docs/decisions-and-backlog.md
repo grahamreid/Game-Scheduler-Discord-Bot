@@ -18,11 +18,22 @@
 - The most popular slot wins. A tie selects the alphabetically earlier slot.
 - Activity suggestions are non-binding discussion input; do not automatically
   select an activity winner.
-- Members may vote for up to three activities and propose one free-text
-  activity. Newly proposed activities become visible immediately.
-- Show the five most popular recent activities, plus current-round suggestions.
-- Activity duplicate detection is deferred. Provide an administrative cleanup
-  command later.
+- Each member may submit one optional free-text activity suggestion immediately
+  after availability. The name enters the searchable catalog immediately. Only
+  selected-slot attendees' suggestions become candidates for that round.
+- Activity names are deduplicated case-insensitively within a guild. More
+  sophisticated consolidation remains deferred; provide administrative cleanup
+  later if needed.
+- Eligible attendees may vote for up to `ceil(attendeeCount / 2)` candidates.
+  Votes are discussion input, remain open until the event, and are published
+  when all eligible attendees vote or one day before the event, whichever is
+  first.
+- `/activity history` privately searches prior activity names and calculates
+  proposal and popularity statistics from all activity polls in the guild.
+- `/activity wipe` requires Manage Server permission and private confirmation.
+  It clears the guild's activity catalog, suggestions, and votes. Activity
+  polls are kept with the deleted candidate IDs removed, so a poll may have
+  no choices left. Planning rounds and availability responses are kept.
 - A selected host must volunteer and be available on the selected date. Among
   eligible volunteers, choose the least-recent host.
 - `/round wipe` is administrator-only, confirms through a private Discord

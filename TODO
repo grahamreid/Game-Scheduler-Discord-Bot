@@ -1,7 +1,7 @@
 * Next implementation work
-
-** Activity suggestions and voting: recent top-five suggestions, one free-text
-  proposal per member, and up to three non-binding votes per member.
+** test activity, including blank suggestions
+** what happens when all suggestions are in?
+** what happens after availability is selected? When is it saved? Can I go back and change it afterwards?
 ** Host volunteering, hosting history, and least-recent eligible-host selection.
 ** Complete round-closure announcement: who, where, when, activity discussion
   results, and selected host.
@@ -30,6 +30,7 @@
   agent-assisted development.
 ** Restrict unexpected interaction with the bot outside its configured channel
   and intended round state.
+** have non-admin confirm they can't wipe activity or rounds (and ideally can't even see the commands)
 
 * Later product ideas
 
@@ -44,16 +45,20 @@
 
 ** Virtual versus in-person sessions
 
-** Add a one-time command that polls members for their global virtual versus
+*** Add a one-time command that polls members for their global virtual versus
   in-person preference.
-** State up front whether each round is eligible for in-person only, virtual
+*** State up front whether each round is eligible for in-person only, virtual
   only, or either format.
-** Determine how often rounds are in-person-only versus either-format using the
+*** Determine how often rounds are in-person-only versus either-format using the
   ratio of members who prefer virtual sessions.
-** For a round eligible for either format, allow members to select an optional
+*** For a round eligible for either format, allow members to select an optional
   per-round virtual/in-person preference.
-*** If no per-round preference is selected, use the member's global preference.
-*** Show that prompt only when the round is eligible for either format.
-** If at least one virtual-preferring attendee is available in the selected slot
+**** If no per-round preference is selected, use the member's global preference.
+**** Show that prompt only when the round is eligible for either format.
+*** If at least one virtual-preferring attendee is available in the selected slot
   (using their per-round preference when given, otherwise their global
   preference), make the selected session virtual.
+
+** individual activity deletion capability
+** being able to reproduce interactions eg get them from users and play them back
+** process for consolidating common activities (probably ai-driven)

@@ -2,13 +2,18 @@
  * Availability-specific rules live here instead of the database file so they
  * can be read as plain business logic and reused by Discord handlers and future tests.
  */
-import type { AvailabilityResponse, AvailabilityTally, CandidateSlot } from "./types";
 import { saveAvailabilityResponse } from "./db/availability-responses";
 import { findPlanningRound } from "./db/planning-rounds";
+import type { AvailabilityResponse, AvailabilityTally, CandidateSlot, PlanningRound } from "./types";
 
 export type AvailabilityDecision =
   | { kind: "selected"; slot: string; attendeeCount: number; tallies: AvailabilityTally[] }
   | { kind: "cancelled"; attendeeCount: number; tallies: AvailabilityTally[] };
+
+/** Checks whether the initial poll still accepts availability and suggestions. */
+export function isInitialPollOpen(round: PlanningRound, now = new Date()): boolean {
+  return round.status === "open";
+}
 
 /**
  * Tallies multi-select availability and determines the next workflow step.
@@ -58,7 +63,7 @@ export async function submitAvailability(
 ): Promise<void> {
   const round = await findPlanningRound(roundId);
   if (round === null) throw new Error("Planning round not found.");
-  if (round.status !== "open" || round.deadlineProcessedAt !== null || now >= round.deadline) {
+  if (!isInitialPollOpen(round, now)) {
     throw new Error("Availability is no longer open for this round.");
   }
 

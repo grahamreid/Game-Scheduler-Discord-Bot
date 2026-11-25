@@ -48,7 +48,7 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 
 ```text
 planningRounds
-  _id, guildId, channelId, status, title, deadline, deadlineProcessedAt,
+  _id, guildId, channelId, status, title, deadline,
   candidateSlots: [ { value } ],
   minimumAttendeeCount, selectedSlot, selectedHostUserId, finalizedAt, createdAt, updatedAt
 
@@ -60,14 +60,17 @@ availabilityResponses
   roundId, userId, slots, submittedAt
 
 activities
-  id, guildId, displayName, createdByUserId,
-  firstSuggestedAt, lastSuggestedAt, selectedCount
+  _id, guildId, name, normalizedName, createdByUserId, createdAt
 
 activityVotes
-  roundId, userId, activityIds, votedAt
+  _id, roundId, userId, activityId, votedAt
 
-activityProposals
-  roundId, userId, activityId, proposedAt
+activitySuggestions
+  _id, roundId, userId, activityId, suggestedAt
+
+roundActivityPolls
+  _id, roundId, eligibleUserIds, candidateActivityIds, voteLimit,
+  resultsPublishedAt, createdAt
 
 hostingVolunteers
   roundId, userId, volunteeredAt
@@ -118,6 +121,38 @@ Weekdays represent evenings implicitly; no time is assigned yet.
 weekend-splitting, and deadline defaults; per-round arguments may override
 those values.
 
+## Activity suggestions and discussion votes
+
+Immediately after a member saves availability, Discord opens a private optional
+free-text activity-suggestion modal. The bot case-insensitively deduplicates
+activity names within a guild and saves one current suggestion per member per
+round. Once availability selects a slot, only suggestions from members
+available for that slot become activity-poll candidates.
+
+Each user can create up to 1,000 catalog entries across all guilds. Reusing a
+name already in the guild's catalog uses no additional space in the quota.
+Replacing a round suggestion leaves its previous name in the catalog, where
+it still counts toward the creator's quota. The count and write are separate
+operations, so simultaneous requests near the limit can exceed it.
+
+Members can add or replace their suggestion by selecting their availability
+again before the deadline. Submitting the modal with a blank suggestion keeps
+the previous choice.
+
+`/activity history` searches the guild's full catalog, including names added
+during open rounds and names from cancelled rounds. Statistics use every
+activity poll linked to a round in that guild, regardless of round status or
+whether results have been published. Popularity can change as votes arrive.
+Proposal rate is the percentage of those polls in which the activity was a
+candidate. Popularity is the average share of eligible attendees who voted for
+it in polls where it was a candidate.
+
+`roundActivityPolls` is separate from `planningRounds` to preserve the
+candidate and eligible-attendee snapshot used for activity discussion and
+history. It deliberately has no voting status or deadline: votes remain open
+until the event date. Its results publish when every eligible attendee has
+voted or the event is one day away, whichever occurs first.
+
 Dates such as an event day are `YYYY-MM-DD` strings in the guild's timezone.
 Deadlines and audit fields are MongoDB `Date` values, which represent UTC
 instants.
@@ -125,9 +160,9 @@ instants.
 ## Deadline processing
 
 `schedule:process` is an idempotent, manually runnable deadline processor. It
-finds `open` rounds whose `deadline` has passed and have no
-`deadlineProcessedAt` yet, then counts each member's current availability
-response.
+finds `open` rounds whose `deadline` has passed, then counts each member's
+current availability response. Submissions stop at the deadline even if the
+scheduler has yet to process the round.
 
 Availability responses are the source of truth, rather than a counter embedded
 in `candidateSlots`. Each Discord member interacts individually with the same
@@ -138,8 +173,8 @@ the data needed for attendance and host eligibility.
 
 - At least the round's configured minimum number of members available in one or
   more slots: save the most popular slot, choosing the alphabetically earlier
-  slot when counts tie, and set
-  `deadlineProcessedAt`.
+  slot when counts tie, and set the round to `finalized` with a `finalizedAt`
+  timestamp.
 - Fewer members than the configured minimum in every slot: cancel the round.
 
 ## Local poll closing

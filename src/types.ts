@@ -44,8 +44,6 @@ export interface PlanningRound {
   title: string | null;
   /** The current planning deadline; this MVP uses it to close availability. */
   deadline: Date;
-  /** Set once the deadline has been processed into a selected day or cancellation. */
-  deadlineProcessedAt: Date | null;
   /** Attendance threshold copied from guild settings when this round was opened. */
   minimumAttendeeCount: number;
   selectedSlot: string | null;
@@ -67,4 +65,43 @@ export interface AvailabilityResponse {
 export interface AvailabilityTally {
   slot: string;
   votes: number;
+}
+
+/** A reusable, guild-scoped activity name, deduplicated by normalized spelling. */
+export interface Activity {
+  _id: string;
+  guildId: string;
+  name: string;
+  normalizedName: string;
+  createdByUserId: string;
+  createdAt: Date;
+}
+
+/** One member's current activity suggestion for a planning round. */
+export interface ActivitySuggestion {
+  _id: string;
+  roundId: string;
+  userId: string;
+  activityId: string;
+  suggestedAt: Date;
+}
+
+/** Snapshot of the activity candidates and eligible voters for one closed availability poll. */
+export interface RoundActivityPoll {
+  _id: string;
+  roundId: string;
+  eligibleUserIds: string[];
+  candidateActivityIds: string[];
+  voteLimit: number;
+  resultsPublishedAt: Date | null;
+  createdAt: Date;
+}
+
+/** One member's vote for one candidate activity in a round. */
+export interface ActivityVote {
+  _id: string;
+  roundId: string;
+  userId: string;
+  activityId: string;
+  votedAt: Date;
 }

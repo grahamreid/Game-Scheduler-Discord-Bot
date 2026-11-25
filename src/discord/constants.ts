@@ -3,6 +3,7 @@
  * prevents handlers from relying on duplicated string literals.
  */
 export const availabilityCustomIdPrefix = "availability:";
+export const activitySuggestionModalPrefix = "activity-suggestion:";
 export const wipeConfirmPrefix = "round-wipe-confirm:";
 export const wipeCancelPrefix = "round-wipe-cancel:";
 
