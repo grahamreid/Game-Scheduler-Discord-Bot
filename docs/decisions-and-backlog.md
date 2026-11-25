@@ -25,9 +25,9 @@
   sophisticated consolidation remains deferred; provide administrative cleanup
   later if needed.
 - Eligible attendees may vote for up to `ceil(attendeeCount / 2)` candidates.
-  Votes are discussion input, remain open until the event, and are published
-  when all eligible attendees vote or one day before the event, whichever is
-  first.
+  Ballots can be revised through the event date in the guild's timezone. The
+  bot posts one snapshot when all eligible attendees vote or the guild reaches
+  the day before the event, whichever comes first.
 - `/activity history` privately searches prior activity names and calculates
   proposal and popularity statistics from all activity polls in the guild.
 - `/activity wipe` requires Manage Server permission and private confirmation.
@@ -45,33 +45,34 @@
   weekend Afternoon/Evening split. They also define the minimum number of
   available attendees required for a slot to win. Manual round creation starts
   immediately.
-- Local development can opt into an in-process availability closer through
-  `ENABLE_LOCAL_ROUND_CLOSER=true`; production will use an external trigger.
-
-## Deferred Discord commands/features
-
-| Idea | Notes |
-| --- | --- |
-| `/activity delete` | Administrative removal/hiding of unwanted or duplicate suggestions. |
-| Reminder messages | Consider prompting members before a deadline. |
-| Immediate round closure | Administrator command to close the current availability poll without waiting for its deadline. |
-| Recurrence execution | Use configured cadence, first survey date/time, and timezone to create rounds automatically. |
-| Upcoming-session reminders | Support multiple closed, future sessions and send a day-before reminder. |
-| Virtual/in-person preferences | Define global member preference, per-round eligibility, and the rule that chooses format. |
-| Monthly cadence | Requires an explicit calendar rule (for example, same day-of-month or nth weekday), behavior for months without that date, and a guild timezone. It cannot safely reuse the fixed 7/14-day calculation. |
-| More timezone mappings | Initial setup maps ET/EST/EDT, CT/CST/CDT, MT/MST/MDT, and PT/PST/PDT to IANA zones. Add other regions or direct IANA-zone selection as needed. |
-| AWS deployment | Lambda/API Gateway/EventBridge after local workflow is proven. |
+- Local development can opt into availability closing and scheduled activity
+  results through `ENABLE_LOCAL_ROUND_CLOSER=true`. Production will use an
+  external trigger.
 
 ## Implementation sequence
 
-1. Publish activity vote totals when all eligible members have voted or one day before the event.
-2. Host volunteering and host-history selection.
-3. Complete final round closure and announcement, including activity discussion
-   results and selected host.
-4. Automated recurring round creation from guild scheduling settings.
-5. Upcoming-session reminders and support for multiple future closed sessions.
-6. AWS deployment via EventBridge (or similar), API Gateway, and possibly Lambda.
-7. Live testing and integration with the real server.
+1. Add manual controls for closing a round and testing date-based behavior.
+   Validate the existing activity voting flow in the private Discord server,
+   then add the second activity totals post.
+2. Collect host volunteers in the initial form, select a host using attendance
+   and hosting history, and include the host and location in the round result.
+3. Add session format preferences and use them to decide how attendees meet.
+4. Configure the scheduling channel, automate recurring round creation, and
+   send day-before reminders for upcoming sessions.
+5. Validate the full flow in the private server, then deploy with an external
+   scheduler and roll it out to the real server. EventBridge, Lambda, and API
+   Gateway remain AWS options.
+
+The [TODO list](../TODO) holds the implementation details, manual checks, and
+deferred ideas. Validate each step in the private server as it lands.
+
+## Deferred scheduling design
+
+- Monthly cadence needs a calendar rule such as the same day of the month or
+  the nth weekday, a rule for months where that date is unavailable, and the
+  guild timezone. The weekly and biweekly schedules use fixed day intervals.
+- The current US abbreviations map to IANA zones. Add other regions or allow
+  direct IANA zone selection when needed.
 
 ## Private-server setup
 
