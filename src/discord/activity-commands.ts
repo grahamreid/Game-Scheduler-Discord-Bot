@@ -47,7 +47,8 @@ export async function handleActivityCommand(interaction: ChatInputCommandInterac
       return `**${entry.activity.name}** — ${proposal}; ${popularity} (${entry.pollCount} poll${entry.pollCount === 1 ? "" : "s"})`;
     });
     await interaction.editReply(`**Activity history**\n${lines.join("\n")}`);
-  } catch {
+  } catch (error) {
+    console.error("/activity history failed:", error instanceof Error ? error.stack : String(error));
     await interaction.editReply("Could not retrieve activity history.");
   }
 }

@@ -5,10 +5,10 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 import { ensureDatabaseIndexes } from "./db/setup";
-import { handleAdminRoundCommand, handleRoundWipeButton } from "./discord/admin-round-commands";
-import { handleAvailabilityMenu } from "./discord/availability-menu";
 import { activityCommand, handleActivityCommand } from "./discord/activity-commands";
 import { handleActivitySuggestionModal } from "./discord/activity-suggestion-modal";
+import { handleAdminRoundCommand, handleRoundWipeButton } from "./discord/admin-round-commands";
+import { handleAvailabilityMenu } from "./discord/availability-menu";
 import { roundCommand } from "./discord/round-command-definition";
 import { startLocalRoundCloser } from "./scheduling/local-round-closer";
 
@@ -31,7 +31,9 @@ function localRoundCloserInterval(): number {
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.once(Events.ClientReady, async (readyClient) => {
+  console.log("Discord connected. Checking MongoDB indexes.");
   await ensureDatabaseIndexes();
+  console.log("MongoDB indexes ready. Registering test-guild commands.");
   const guild = await readyClient.guilds.fetch(testGuildId);
   await guild.commands.set([roundCommand.toJSON(), activityCommand.toJSON()]);
   console.log(`Logged in as ${readyClient.user.tag}; test-guild commands registered.`);
@@ -43,17 +45,34 @@ client.once(Events.ClientReady, async (readyClient) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (interaction.isChatInputCommand() && interaction.commandName === "round") {
-    await handleAdminRoundCommand(interaction);
-  } else if (interaction.isChatInputCommand() && interaction.commandName === "activity") {
-    await handleActivityCommand(interaction);
-  } else if (interaction.isStringSelectMenu()) {
-    await handleAvailabilityMenu(interaction);
-  } else if (interaction.isModalSubmit()) {
-    await handleActivitySuggestionModal(interaction);
-  } else if (interaction.isButton()) {
-    await handleRoundWipeButton(interaction);
+  let operation: string;
+  if (interaction.isChatInputCommand()) {
+    const subcommand = interaction.options.getSubcommand(false);
+    operation = subcommand ? `/${interaction.commandName} ${subcommand}` : `/${interaction.commandName}`;
+  } else if (interaction.isStringSelectMenu() || interaction.isModalSubmit() || interaction.isButton()) {
+    // Some Component IDs have a round or user ID after the operation name.
+    operation = interaction.customId.split(":", 1)[0];
+  } else {
+    return;
+  }
+
+  console.log(`Discord interaction received: ${operation}`);
+  try {
+    if (interaction.isChatInputCommand() && interaction.commandName === "round") {
+      await handleAdminRoundCommand(interaction);
+    } else if (interaction.isChatInputCommand() && interaction.commandName === "activity") {
+      await handleActivityCommand(interaction);
+    } else if (interaction.isStringSelectMenu()) {
+      await handleAvailabilityMenu(interaction);
+    } else if (interaction.isModalSubmit()) {
+      await handleActivitySuggestionModal(interaction);
+    } else if (interaction.isButton()) {
+      await handleRoundWipeButton(interaction);
+    }
+  } catch (error) {
+    console.error(`Discord interaction failed: ${operation}`, error instanceof Error ? error.stack : String(error));
   }
 });
 
+console.log("Connecting to Discord.");
 void client.login(token);

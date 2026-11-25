@@ -9,8 +9,12 @@ import {
   ButtonInteraction,
   ButtonStyle,
   ChatInputCommandInteraction,
-  PermissionsBitField,
+  escapeMarkdown,
+  MessageFlags,
+  PermissionsBitField
 } from "discord.js";
+import { tallyAvailability } from "../availability";
+import { getActivitySuggestions } from "../db/activity-suggestions";
 import { findAvailabilityResponses } from "../db/availability-responses";
 import { findGuildSchedulingSettings, saveGuildSchedulingSettings } from "../db/guild-scheduling-settings";
 import { getDatabase } from "../db/mongo";
@@ -49,44 +53,41 @@ async function handleInitializeSettings(interaction: ChatInputCommandInteraction
     await saveGuildSchedulingSettings(interaction.guildId!, cadence, firstSurveyDate, launchTime.time, launchTime.timeZone, defaultDeadline, minimumAttendeeCount, splitWeekendSlots);
     await interaction.reply({ content: `Saved ${cadence} defaults beginning ${firstSurveyDate} at ${launchTime.time} (${launchTime.timeZone}); availability closes ${defaultDeadline} after launch, ${minimumAttendeeCount} attendees are required, and weekend splitting is ${splitWeekendSlots ? "on" : "off"}.`, ephemeral: true });
   } catch (error) {
+    console.error("/round initialize-settings failed:", error instanceof Error ? error.stack : String(error));
     await interaction.reply({ content: error instanceof Error ? error.message : "Could not save scheduling defaults.", ephemeral: true });
   }
 }
 
-/** Reports the current round and its responders to an administrator. */
+/** Reports slot tallies and activity suggestions for the latest round. */
 async function handleRoundStatus(interaction: ChatInputCommandInteraction, guildId: string): Promise<void> {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   try {
     const database = await getDatabase();
-    // get latest round, regardless of whether it is open, finalized, or cancelled. This is the same
     const round = await database.collection<PlanningRoundDocument>("planningRounds")
       .findOne({ guildId }, { sort: { createdAt: -1 } });
     if (round === null) return void await interaction.editReply("There is no planning round for this server.");
-    const responses = await findAvailabilityResponses(round._id);
-    const responderNames = await Promise.all(responses.map(async (response) => {
-      try {
-        return (await interaction.guild!.members.fetch(response.userId)).displayName;
-      } catch {
-        return `Unknown member (${response.userId})`;
-      }
-    }));
+    const [responses, suggestions] = await Promise.all([
+      findAvailabilityResponses(round._id),
+      getActivitySuggestions(round._id, guildId),
+    ]);
+    const slotLines = tallyAvailability(round.candidateSlots, responses)
+      .filter(({ votes }) => votes > 0)
+      .map(({ slot, votes }) => {
+        const winner = slot === round.selectedSlot ? " (winner)" : "";
+        return `- ${escapeMarkdown(slot)} — ${votes} ${votes === 1 ? "vote" : "votes"}${winner}`;
+      });
     const title = round.title ?? "Board-game Scheduling";
-    let availabilityStatus: string;
-    switch (round.status) {
-      case "open":
-        availabilityStatus = new Date() < round.deadline
-          ? `Open until <t:${Math.floor(round.deadline.getTime() / 1000)}:R>`
-          : "Deadline passed. Waiting for the result.";
-        break;
-      case "finalized":
-        availabilityStatus = `Finalized. Selected slot is **${round.selectedSlot ?? "none"}**.`;
-        break;
-      case "cancelled":
-        availabilityStatus = "Cancelled.";
-        break;
-    }
-    await interaction.editReply(`**${title}**\n${availabilityStatus}\nMinimum attendees: ${round.minimumAttendeeCount}\nSlots: ${round.candidateSlots.map((slot) => slot.value).join(", ")}\nAvailability responses (${responses.length}): ${responderNames.join(", ") || "none"}`);
-  } catch {
+    const content = [
+      `**${escapeMarkdown(title)}**`,
+      "**Availability votes**",
+      slotLines.join("\n") || "No slots selected yet.",
+      "**Activity suggestions**",
+      suggestions.map((name) => `- ${escapeMarkdown(name)}`).join("\n") || "No activity suggestions yet.",
+    ].join("\n");
+    await interaction.editReply({ content, allowedMentions: { parse: [] } });
+    console.log(`/round status sent for round ${round._id}.`);
+  } catch (error) {
+    console.error("/round status failed:", error instanceof Error ? error.stack : String(error));
     await interaction.editReply("Could not retrieve the current planning round.");
   }
 }
@@ -119,6 +120,7 @@ async function handleCreateRound(interaction: ChatInputCommandInteraction): Prom
     await interaction.channel.send(buildAvailabilityMessage(round));
     await interaction.editReply(`Created round \`${round._id}\` and posted its availability menu.`);
   } catch (error) {
+    console.error("/round create failed:", error instanceof Error ? error.stack : String(error));
     const message = error instanceof Error ? error.message : "Could not create the round.";
     if (interaction.deferred) await interaction.editReply(message);
     else await interaction.reply({ content: message, ephemeral: true });
@@ -158,7 +160,8 @@ export async function handleRoundWipeButton(interaction: ButtonInteraction): Pro
   try {
     const deletedCount = await wipeGuildRounds(guildId);
     await interaction.editReply({ content: `Deleted ${deletedCount} planning round${deletedCount === 1 ? "" : "s"} and their availability responses.`, components: [] });
-  } catch {
+  } catch (error) {
+    console.error("/round wipe failed:", error instanceof Error ? error.stack : String(error));
     await interaction.editReply({ content: "Could not wipe this server's rounds.", components: [] });
   }
 }

@@ -50,6 +50,7 @@ export async function handleActivitySuggestionModal(interaction: ModalSubmitInte
     await saveActivitySuggestion(roundId, interaction.user.id, activity._id);
     await interaction.editReply(`Availability and activity suggestion saved: **${activity.name}**. You can browse prior suggestions with /activity history.`);
   } catch (error) {
+    console.error(`Could not save an activity suggestion for round ${roundId}:`, error instanceof Error ? error.stack : String(error));
     await interaction.editReply(error instanceof Error ? error.message : "Could not save activity suggestion.");
   }
 }

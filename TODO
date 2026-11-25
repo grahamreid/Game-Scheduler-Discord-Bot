@@ -1,7 +1,8 @@
+* activity remaining work
+** change from modal if possible
+** still need to actually create the activity poll after the round is finalized -- shared message with private responses
+
 * Next implementation work
-** test activity, including blank suggestions
-** what happens when all suggestions are in?
-** what happens after availability is selected? When is it saved? Can I go back and change it afterwards?
 ** Host volunteering, hosting history, and least-recent eligible-host selection.
 ** Complete round-closure announcement: who, where, when, activity discussion
   results, and selected host.
