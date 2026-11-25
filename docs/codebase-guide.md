@@ -52,9 +52,11 @@ src/
 | `src/availability.ts` | Availability rules: validates current submissions, tallies selections, and chooses a winning slot. |
 | `src/slot-generation.ts` | Calendar-only logic that turns a scheduled survey date and options into dated availability slot labels. Kept separate so manual and future automated round creation use identical rules. |
 | `src/round-result-workflow.ts` | Application workflow that closes expired availability polls and prepares result data, including the selected-slot attendees, without depending on Discord. |
+| `src/activity-result-workflow.ts` | Decides whether activity totals are due and calculates a snapshot from the current eligible ballots, without depending on Discord. |
 | `src/scheduling/close-round.ts` | Closes one round's availability and also offers a reusable loop for rounds whose deadlines have passed. |
-| `src/scheduling/local-round-closer.ts` | Opt-in local-development timer that invokes round closing and posts an availability result to Discord. It does not define the closing rules itself. |
+| `src/scheduling/local-round-closer.ts` | Opt-in local-development timer that invokes availability closing and checks for due activity results. It does not define those business rules itself. |
 | `src/discord/round-closure-announcer.ts` | Formats attendee mentions and posts prepared round-closure results. It keeps Discord message rendering outside business workflows. |
+| `src/discord/activity-results-announcer.ts` | Formats and posts activity-vote snapshots, recording the publication time after a successful Discord send. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |
 | `src/index.ts` | Starts the local Discord Gateway bot and registers test-guild commands. It is a long-running bot process, not an HTTP server. |

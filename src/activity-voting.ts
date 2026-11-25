@@ -4,6 +4,7 @@ import { findActivitiesByIds, findActivityPoll, saveActivityBallot, saveActivity
 import { findEligibleSuggestionIds } from "./db/activity-suggestions";
 import { findGuildSchedulingSettings } from "./db/guild-scheduling-settings";
 import { findPlanningRound } from "./db/planning-rounds";
+import { getLocalCalendarDate } from "./slot-generation";
 import type { Activity, RoundActivityPoll } from "./types";
 
 const maxActivityChoices = 25; // Maximum options in a Discord string select.
@@ -30,6 +31,7 @@ export async function prepareActivityPoll(
   const poll: RoundActivityPoll = {
     _id: randomUUID(),
     roundId,
+    guildId,
     eligibleUserIds,
     candidateActivityIds: choices.map((activity) => activity._id),
     voteLimit: Math.ceil(eligibleUserIds.length / 2),
@@ -60,11 +62,9 @@ export async function getOpenActivityPoll(
   const { surveyTimeZone } = (await findGuildSchedulingSettings(round.guildId))!;
   const eventDate = round.eventDate!;
   // Slots describe a date and part of day. Accept votes through that local date.
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: surveyTimeZone, year: "numeric", month: "2-digit", day: "2-digit",
-  }).formatToParts(now);
-  const localDate = ["year", "month", "day"].map((type) => parts.find((part) => part.type === type)?.value).join("-");
-  if (localDate > eventDate) throw new Error("Activity voting has ended for this session.");
+  if (getLocalCalendarDate(now, surveyTimeZone) > eventDate) {
+    throw new Error("Activity voting has ended for this session.");
+  }
   return poll;
 }
 

@@ -88,13 +88,16 @@ export interface ActivitySuggestion {
   suggestedAt: Date;
 }
 
-/** Snapshot of the activity candidates and eligible voters for one closed availability poll. */
+/** Candidate and eligible-voter snapshot for activity discussion after availability closes. */
 export interface RoundActivityPoll {
   _id: string;
   roundId: string;
+  /** Lets a guild wipe remove this poll even if its round is already gone. */
+  guildId: string;
   eligibleUserIds: string[];
   candidateActivityIds: string[];
   voteLimit: number;
+  /** Set after the one-time vote-total announcement is successfully posted. */
   resultsPublishedAt: Date | null;
   createdAt: Date;
 }

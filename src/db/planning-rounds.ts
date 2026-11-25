@@ -5,6 +5,7 @@
 import type { Collection } from "mongodb";
 import { randomUUID } from "node:crypto";
 import type { CandidateSlot, PlanningRound } from "../types";
+import { deleteGuildActivityPolls } from "./activity-polls";
 import { getDatabase } from "./mongo";
 
 /** The data supplied when opening a planning round. */
@@ -71,19 +72,31 @@ export async function findPlanningRound(id: string): Promise<PlanningRoundDocume
 }
 
 /**
- * Removes every round belonging to one guild and its dependent availability
- * responses. Call this only after an administrator has explicitly confirmed.
+ * Removes the guild's rounds and their responses, suggestions, polls, and ballots.
+ * Call this only after an administrator has explicitly confirmed.
  */
 export async function wipeGuildRounds(guildId: string): Promise<number> {
   const planningRounds = await rounds();
-  // "projection" here fetches only IDs (_id): availability responses refer to a round ID, not its full document.
+  // Only the IDs are needed to find the records attached to each round.
   const guildRounds = await planningRounds.find({ guildId }, { projection: { _id: 1 } }).toArray();
   const roundIds = guildRounds.map((round) => round._id);
-  if (roundIds.length > 0) {
-    await (await getDatabase()).collection("availabilityResponses").deleteMany({ roundId: { $in: roundIds } });
+  if (roundIds.length === 0) {
+    await deleteGuildActivityPolls(guildId);
+    return 0;
   }
-  const result = await planningRounds.deleteMany({ guildId });
-  return result.deletedCount;
+
+  const database = await getDatabase();
+  const roundIdFilter = { roundId: { $in: roundIds } };
+  await Promise.all([
+    database.collection("availabilityResponses").deleteMany(roundIdFilter),
+    database.collection("activitySuggestions").deleteMany(roundIdFilter),
+    database.collection("activityVotes").deleteMany(roundIdFilter),
+  ]);
+
+  const { deletedCount } = await planningRounds.deleteMany({ guildId, _id: { $in: roundIds } });
+  // Delete polls after their rounds so this also catches polls saved during the wipe.
+  await deleteGuildActivityPolls(guildId);
+  return deletedCount;
 }
 
 /** Finds open rounds whose deadline is ready to process. */

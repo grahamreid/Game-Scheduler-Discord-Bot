@@ -37,7 +37,9 @@
 - A selected host must volunteer and be available on the selected date. Among
   eligible volunteers, choose the least-recent host.
 - `/round wipe` is administrator-only, confirms through a private Discord
-  button, and deletes only the current guild's rounds and availability data.
+  button, and deletes the current guild's rounds along with their availability
+  responses, activity suggestions, polls, and ballots. It keeps the guild's
+  activity catalog.
 - Guild scheduling settings support `weekly` and `biweekly` cadence, a first
   automated-survey date/time, a default availability deadline, and an optional
   weekend Afternoon/Evening split. They also define the minimum number of

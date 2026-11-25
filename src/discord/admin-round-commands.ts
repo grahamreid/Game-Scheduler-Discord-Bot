@@ -137,7 +137,7 @@ async function handleRoundWipeRequest(interaction: ChatInputCommandInteraction):
   const confirmationId = `${wipeConfirmPrefix}${interaction.guildId}:${interaction.user.id}`;
   const cancelId = `${wipeCancelPrefix}${interaction.guildId}:${interaction.user.id}`;
   await interaction.reply({
-    content: "Are you sure? This permanently deletes every planning round and availability response for this server.",
+    content: "Are you sure? This permanently deletes every planning round for this server, along with its availability responses, activity suggestions, polls, and ballots. The activity catalog is kept.",
     ephemeral: true,
     components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setCustomId(confirmationId).setLabel("Yes, wipe rounds").setStyle(ButtonStyle.Danger),
@@ -164,7 +164,7 @@ export async function handleRoundWipeButton(interaction: ButtonInteraction): Pro
   await interaction.deferUpdate();
   try {
     const deletedCount = await wipeGuildRounds(guildId);
-    await interaction.editReply({ content: `Deleted ${deletedCount} planning round${deletedCount === 1 ? "" : "s"} and their availability responses.`, components: [] });
+    await interaction.editReply({ content: `Deleted ${deletedCount} planning round${deletedCount === 1 ? "" : "s"} and associated responses, suggestions, polls, and ballots.`, components: [] });
   } catch (error) {
     console.error("/round wipe failed:", error instanceof Error ? error.stack : String(error));
     await interaction.editReply({ content: "Could not wipe this server's rounds.", components: [] });

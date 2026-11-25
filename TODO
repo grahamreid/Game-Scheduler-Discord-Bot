@@ -1,50 +1,11 @@
-* activity remaining work
-** Publish activity vote totals when every eligible attendee has voted or one day before the event, whichever comes first.
-
 * Next implementation work
 ** Host volunteering, hosting history, and least-recent eligible-host selection.
 ** Complete round-closure announcement: who, where, when, activity discussion
   results, and selected host.
-** Administrator command to close the current round immediately.
+** Administrator command to close the current round immediately
 ** Ensure members receive their completion confirmation only after every input
   for the currently implemented workflow has been saved; errors may reply
   immediately.
-** Validate/store the configured Discord channel and enforce select-menu limits
-  before round creation.
-
-* Recurrence and notifications
-
-** Create a scheduled round when its configured next survey date and launch time
-  arrive.
-** Support multiple availability-closed but upcoming sessions so reminders work
-  for each one.
-** Send a once-daily check for a session-day-before reminder, considering only
-  closed rounds.
-
-* Validation and hardening
-
-** Run a real multi-member Discord test with legitimate manually operated
-  accounts; do not automate normal Discord user accounts.
-** Replace deprecated ephemeral-response options with Discord's flags API.
-** Review free-form input limits/sanitization and keep secrets safe during
-  agent-assisted development.
-** Restrict unexpected interaction with the bot outside its configured channel
-  and intended round state.
-** have non-admin confirm they can't wipe activity or rounds (and ideally can't even see the commands)
-** test auto-cancelling works
-** confirm that if no suggestions, no poll comes up, but day before event reminder still happens
-
-* Later product ideas
-
-** `/activity delete` administrative cleanup for unwanted or duplicate activity
-  suggestions.
-** Consider reminder messages before an availability deadline.
-** Consider Pooky-themed bot responses.
-** Consider a terminology pass (`round`, `poll`, and `session`) once the full
-  workflow is established.
-** Generalize the bot for multiple independent Discord servers.
-** After the project, write `AGENTS.md` documenting preferred development style.
-
 ** Virtual versus in-person sessions
 
 *** Add a one-time command that polls members for their global virtual versus
@@ -61,6 +22,43 @@
   (using their per-round preference when given, otherwise their global
   preference), make the selected session virtual.
 
+* Recurrence and notifications
+
+** Create a scheduled round when its configured next survey date and launch time
+  arrive.
+** Support multiple availability-closed but upcoming sessions so reminders work
+  for each one.
+** Send a once-daily check for a session-day-before reminder, considering only
+  closed rounds.
+
+* Validation and hardening
+
+** command to set round's event date
+** Run a real multi-member Discord test with legitimate manually operated
+  accounts; do not automate normal Discord user accounts.
+** Replace deprecated ephemeral-response options with Discord's flags API.
+** Review free-form input limits/sanitization and keep secrets safe during
+  agent-assisted development.
+** Restrict unexpected interaction with the bot outside its configured channel
+  and intended round state.
+** have non-admin confirm they can't wipe activity or rounds (and ideally can't even see the commands)
+** test auto-cancelling works
+** confirm that if no suggestions, no poll comes up, but day before event reminder still happens
+** test changing my vote or undoing my vote
+** test activity totals publish after everyone votes and at the day-before cutoff when ballots are missing
+
+* Later product ideas
+
+** `/activity delete` administrative cleanup for unwanted or duplicate activity
+  suggestions.
+** Consider reminder messages before an availability deadline.
+** Consider Pooky-themed bot responses.
+*** general sprucing up of messages, etc
+** Consider a terminology pass (`round`, `poll`, and `session`) once the full
+  workflow is established.
+** Generalize the bot for multiple independent Discord servers.
+** After the project, write `AGENTS.md` documenting preferred development style.
+
 ** individual activity deletion capability
 ** add unit tests
 ** being able to reproduce interactions eg get them from users and play them back
@@ -69,3 +67,4 @@
 * refactors
 ** move validation logic and guards do identical signature methods as much as possible instead of adjacent to core business logic, to help aid code readability
 ** agent passthrough to simplify and aid code legibility of this project
+** allow two poll announcements -- one when close to day and another when everyone has responded

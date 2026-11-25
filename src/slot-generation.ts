@@ -1,9 +1,18 @@
 /**
- * Generates the dated choices shown in availability polls. It is kept outside
- * Discord and MongoDB code because the same calendar rules will be used by
- * manual creation now and recurring automation later.
+ * Handles calendar dates for availability slots and activity polls. Manual
+ * round creation and future recurring automation share these rules.
  */
 import type { RoundCadence } from "./types";
+
+/** Returns the local calendar date in the supplied timezone as YYYY-MM-DD. */
+export function getLocalCalendarDate(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(date);
+  return ["year", "month", "day"]
+    .map((type) => parts.find((part) => part.type === type)?.value)
+    .join("-");
+}
 
 /** Converts the supported cadence names into their fixed MVP day spans. */
 export function daysForCadence(cadence: RoundCadence): number {

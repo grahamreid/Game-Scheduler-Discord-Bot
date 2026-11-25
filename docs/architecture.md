@@ -69,7 +69,7 @@ activitySuggestions
   _id, roundId, userId, activityId, suggestedAt
 
 roundActivityPolls
-  _id, roundId, eligibleUserIds, candidateActivityIds, voteLimit,
+  _id, roundId, guildId, eligibleUserIds, candidateActivityIds, voteLimit,
   resultsPublishedAt, createdAt
 
 hostingVolunteers
@@ -155,9 +155,14 @@ entire ballot with one database write. The shared dropdown offers the first
 
 The round stores the session date. Slots have no exact end time, so voting
 stays open through that date using the guild's configured timezone. The admin
-status reply lists who has voted.
-Publishing totals when every eligible attendee has voted or the event is one
-day away remains a separate step.
+status reply lists who has voted. The bot posts one snapshot of activity totals
+as soon as every eligible attendee has submitted a ballot, or when the guild's
+local date reaches the day before the event, whichever happens first. If the
+day-before trigger arrives with missing ballots, the announcement includes the
+number received out of the eligible attendee count and every remaining
+candidate's vote count, including zero. Activity ballots remain editable
+through the event date; later changes do not revise the already-posted snapshot.
+The announcement says the totals are for discussion, not a binding game choice.
 
 Dates such as an event day are `YYYY-MM-DD` strings in the guild's timezone.
 Deadlines and audit fields are MongoDB `Date` values, which represent UTC
@@ -187,13 +192,15 @@ the data needed for attendance and host eligibility.
 
 When `ENABLE_LOCAL_ROUND_CLOSER=true`, the local Discord process runs an
 in-process timer. It checks immediately at startup and then at
-`ROUND_CLOSER_INTERVAL_MS` (30 seconds is useful for testing) to invoke the
-same application workflow used by future production triggers. That workflow
-closes the poll and prepares the selected attendees and activity choices. The
-Discord layer posts the availability result and a separate activity poll when
-there are eligible suggestions. Only the process that successfully closes a
-round posts its messages. The manual `schedule:process` command processes
-availability in MongoDB. Use the local Discord closer to test channel posts.
+`ROUND_CLOSER_INTERVAL_MS` (30 seconds is useful for testing) to close expired
+availability polls and check whether activity totals are due. After a member
+submits the last missing activity ballot, the Discord interaction handler also
+checks for results immediately. The Discord layer posts the availability result
+and a separate activity poll when there are eligible suggestions. It later
+posts activity totals once per poll; failed sends are retried on a later timer
+check. The manual `schedule:process` command processes availability in MongoDB
+without posting to Discord. Use the local Discord closer to test scheduled
+channel posts.
 
 Production will not use this in-process timer. An external scheduler will call
 the same reusable workflow.
