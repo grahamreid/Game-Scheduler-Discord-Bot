@@ -4,6 +4,7 @@
  */
 export const availabilityFormButtonPrefix = "availability-form-button:";
 export const availabilityFormModalPrefix = "availability-form:";
+export const activityVoteMenuPrefix = "activity-vote:";
 export const wipeConfirmPrefix = "round-wipe-confirm:";
 export const wipeCancelPrefix = "round-wipe-cancel:";
 

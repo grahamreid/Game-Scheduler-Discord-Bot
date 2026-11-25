@@ -51,6 +51,7 @@ export async function createPlanningRound(input: CreatePlanningRoundInput): Prom
     deadline: input.deadline,
     minimumAttendeeCount: input.minimumAttendeeCount,
     selectedSlot: null,
+    eventDate: null,
     selectedHostUserId: null,
     finalizedAt: null,
     createdAt: now,
@@ -99,9 +100,11 @@ export async function finalizePlanningRound(
   slot: string,
   closedAt: Date,
 ): Promise<boolean> {
+  // Every generated slot starts with its YYYY-MM-DD calendar date.
+  const eventDate = slot.slice(0, 10);
   const result = await (await rounds()).updateOne(
     { _id: roundId, status: "open" },
-    { $set: { status: "finalized", selectedSlot: slot, finalizedAt: closedAt, updatedAt: closedAt } },
+    { $set: { status: "finalized", selectedSlot: slot, eventDate, finalizedAt: closedAt, updatedAt: closedAt } },
   );
   return result.modifiedCount === 1;
 }

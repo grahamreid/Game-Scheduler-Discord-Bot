@@ -27,7 +27,7 @@ export async function ensureDatabaseIndexes(): Promise<void> {
   const roundActivityPolls = database.collection("roundActivityPolls");
   await ensureIndex(roundActivityPolls, "one_activity_poll_per_round", { roundId: 1 }, true);
   const activityVotes = database.collection("activityVotes");
-  await ensureIndex(activityVotes, "one_vote_per_activity_per_member", { roundId: 1, userId: 1, activityId: 1 }, true);
+  await ensureIndex(activityVotes, "one_activity_ballot_per_member", { roundId: 1, userId: 1 }, true);
 }
 
 /** Replaces an outdated named index instead of letting an old local schema block startup. */

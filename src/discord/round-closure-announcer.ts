@@ -5,6 +5,7 @@
  */
 import type { Client } from "discord.js";
 import type { AvailabilityClosureResult } from "../round-result-workflow";
+import { buildActivityPollMessage } from "./activity-poll";
 
 /** Posts every current result prepared by the round-closure application workflow. */
 export async function announceRoundClosures(
@@ -25,6 +26,7 @@ export async function announceRoundClosures(
       // Explicitly permit mentions for attendees only; no broad role or @everyone mentions.
       allowedMentions: { users: result.attendingUserIds },
     });
+    if (result.activityPoll !== null) await channel.send(buildActivityPollMessage(result.activityPoll));
   }
 }
 

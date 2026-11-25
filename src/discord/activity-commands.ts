@@ -66,7 +66,7 @@ async function handleActivityWipe(interaction: ChatInputCommandInteraction, guil
   const confirmId = "activity-wipe-confirm";
   const cancelId = "activity-wipe-cancel";
   await interaction.reply({
-    content: "Are you sure? This permanently deletes this server's activity catalog, suggestions, and votes, and removes the deleted choices from activity polls. Activity polls, planning rounds, and availability responses are kept.",
+    content: "Are you sure? This permanently clears this server's activity catalog and suggestions and removes the deleted choices from polls and ballots. The polls and ballots themselves are kept.",
     flags: MessageFlags.Ephemeral,
     components: [new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setCustomId(confirmId).setLabel("Yes, wipe activities").setStyle(ButtonStyle.Danger),

@@ -78,7 +78,10 @@ export async function wipeGuildActivities(guildId: string): Promise<number> {
 
   // A previous round wipe can leave activity records that only the activity IDs identify.
   await database.collection("activitySuggestions").deleteMany(activityRecords);
-  await database.collection("activityVotes").deleteMany(activityRecords);
+  await database.collection<ActivityVote>("activityVotes").updateMany(
+    { activityIds: { $in: activityIds } },
+    { $pull: { activityIds: { $in: activityIds } } },
+  );
   await database.collection<RoundActivityPoll>("roundActivityPolls").updateMany(
     { candidateActivityIds: { $in: activityIds } },
     { $pull: { candidateActivityIds: { $in: activityIds } } },
@@ -112,7 +115,7 @@ export async function findActivityHistory(guildId: string, search: string): Prom
 
     const popularityTotal = pollsWithEligibleVoters.reduce((total, poll) => {
       // get the vote count for this activity in this poll
-      const voteCount = votes.filter((vote) => vote.roundId === poll.roundId && vote.activityId === activity._id).length;
+      const voteCount = votes.filter((vote) => vote.roundId === poll.roundId && vote.activityIds.includes(activity._id)).length;
       // fraction of eligible voters who voted for this activity
       // summing this fraction across all polls and then dividing by the number of polls gives 
       // the average popularity rate for this activity across all polls it was in.

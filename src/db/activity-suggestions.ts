@@ -8,6 +8,11 @@ async function suggestions(): Promise<Collection<ActivitySuggestion>> {
   return (await getDatabase()).collection<ActivitySuggestion>("activitySuggestions");
 }
 
+/** Finds distinct candidates suggested by members available for the winning slot. */
+export async function findEligibleSuggestionIds(roundId: string, eligibleUserIds: string[]): Promise<string[]> {
+  return (await suggestions()).distinct("activityId", { roundId, userId: { $in: eligibleUserIds } });
+}
+
 /** Saves a member's one current suggestion, replacing their earlier suggestion in the round. */
 export async function saveActivitySuggestion(roundId: string, userId: string, activityId: string): Promise<void> {
   await (await suggestions()).updateOne(

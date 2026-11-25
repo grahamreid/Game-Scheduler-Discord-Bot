@@ -6,9 +6,10 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import "dotenv/config";
 import { ensureDatabaseIndexes } from "./db/setup";
 import { activityCommand, handleActivityCommand } from "./discord/activity-commands";
+import { handleActivityVote } from "./discord/activity-poll";
 import { handleAdminRoundCommand, handleRoundWipeButton } from "./discord/admin-round-commands";
 import { handleAvailabilityFormButton } from "./discord/round-post";
-import { availabilityFormButtonPrefix } from "./discord/constants";
+import { activityVoteMenuPrefix, availabilityFormButtonPrefix } from "./discord/constants";
 import { roundCommand } from "./discord/round-command-definition";
 import { handleRoundResponseModal } from "./discord/round-response-modal";
 import { startLocalRoundCloser } from "./scheduling/local-round-closer";
@@ -50,7 +51,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isChatInputCommand()) {
     const subcommand = interaction.options.getSubcommand(false);
     operation = subcommand ? `/${interaction.commandName} ${subcommand}` : `/${interaction.commandName}`;
-  } else if (interaction.isModalSubmit() || interaction.isButton()) {
+  } else if (interaction.isModalSubmit() || interaction.isButton() || interaction.isStringSelectMenu()) {
     // Some Component IDs have a round or user ID after the operation name.
     operation = interaction.customId.split(":", 1)[0];
   } else {
@@ -63,6 +64,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await handleAdminRoundCommand(interaction);
     } else if (interaction.isChatInputCommand() && interaction.commandName === "activity") {
       await handleActivityCommand(interaction);
+    } else if (interaction.isStringSelectMenu() && interaction.customId.startsWith(activityVoteMenuPrefix)) {
+      await handleActivityVote(interaction);
     } else if (interaction.isModalSubmit()) {
       await handleRoundResponseModal(interaction);
     } else if (interaction.isButton()) {

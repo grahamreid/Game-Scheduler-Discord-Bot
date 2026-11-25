@@ -47,6 +47,8 @@ export interface PlanningRound {
   /** Attendance threshold copied from guild settings when this round was opened. */
   minimumAttendeeCount: number;
   selectedSlot: string | null;
+  /** Local calendar date of the selected slot, set when the round is finalized. */
+  eventDate: string | null;
   selectedHostUserId: string | null;
   finalizedAt: Date | null;
   createdAt: Date;
@@ -97,11 +99,10 @@ export interface RoundActivityPoll {
   createdAt: Date;
 }
 
-/** One member's vote for one candidate activity in a round. */
+/** A member's current ballot. Replacing it is a single database write. */
 export interface ActivityVote {
-  _id: string;
   roundId: string;
   userId: string;
-  activityId: string;
+  activityIds: string[];
   votedAt: Date;
 }

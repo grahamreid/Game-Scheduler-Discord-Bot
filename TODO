@@ -1,6 +1,5 @@
 * activity remaining work
-** change from modal if possible
-** still need to actually create the activity poll after the round is finalized -- shared message with private responses
+** Publish activity vote totals when every eligible attendee has voted or one day before the event, whichever comes first.
 
 * Next implementation work
 ** Host volunteering, hosting history, and least-recent eligible-host selection.
@@ -32,6 +31,8 @@
 ** Restrict unexpected interaction with the bot outside its configured channel
   and intended round state.
 ** have non-admin confirm they can't wipe activity or rounds (and ideally can't even see the commands)
+** test auto-cancelling works
+** confirm that if no suggestions, no poll comes up, but day before event reminder still happens
 
 * Later product ideas
 
@@ -61,5 +62,10 @@
   preference), make the selected session virtual.
 
 ** individual activity deletion capability
+** add unit tests
 ** being able to reproduce interactions eg get them from users and play them back
 ** process for consolidating common activities (probably ai-driven)
+
+* refactors
+** move validation logic and guards do identical signature methods as much as possible instead of adjacent to core business logic, to help aid code readability
+** agent passthrough to simplify and aid code legibility of this project

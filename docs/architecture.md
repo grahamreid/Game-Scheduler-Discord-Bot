@@ -50,7 +50,7 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 planningRounds
   _id, guildId, channelId, status, title, deadline,
   candidateSlots: [ { value } ],
-  minimumAttendeeCount, selectedSlot, selectedHostUserId, finalizedAt, createdAt, updatedAt
+  minimumAttendeeCount, selectedSlot, eventDate, selectedHostUserId, finalizedAt, createdAt, updatedAt
 
 guildSchedulingSettings
   guildId, cadence, firstSurveyDate, surveyLaunchTime, surveyTimeZone, defaultDeadline,
@@ -63,7 +63,7 @@ activities
   _id, guildId, name, normalizedName, createdByUserId, createdAt
 
 activityVotes
-  _id, roundId, userId, activityId, votedAt
+  _id, roundId, userId, activityIds, votedAt
 
 activitySuggestions
   _id, roundId, userId, activityId, suggestedAt
@@ -146,11 +146,18 @@ Proposal rate is the percentage of those polls in which the activity was a
 candidate. Popularity is the average share of eligible attendees who voted for
 it in polls where it was a candidate.
 
-`roundActivityPolls` is separate from `planningRounds` to preserve the
-candidate and eligible-attendee snapshot used for activity discussion and
-history. It deliberately has no voting status or deadline: votes remain open
-until the event date. Its results publish when every eligible attendee has
-voted or the event is one day away, whichever occurs first.
+`roundActivityPolls` stores the candidate and eligible-attendee snapshot for
+activity discussion and history. A finalized round with eligible suggestions
+gets a shared voting message. Members available for the selected slot can
+choose up to half the attendee count rounded up. Resubmitting replaces their
+entire ballot with one database write. The shared dropdown offers the first
+25 distinct suggestions in alphabetical order.
+
+The round stores the session date. Slots have no exact end time, so voting
+stays open through that date using the guild's configured timezone. The admin
+status reply lists who has voted.
+Publishing totals when every eligible attendee has voted or the event is one
+day away remains a separate step.
 
 Dates such as an event day are `YYYY-MM-DD` strings in the guild's timezone.
 Deadlines and audit fields are MongoDB `Date` values, which represent UTC
@@ -182,12 +189,11 @@ When `ENABLE_LOCAL_ROUND_CLOSER=true`, the local Discord process runs an
 in-process timer. It checks immediately at startup and then at
 `ROUND_CLOSER_INTERVAL_MS` (30 seconds is useful for testing) to invoke the
 same application workflow used by future production triggers. That workflow
-closes the poll and prepares the selected attendees; the Discord layer resolves
-their display names and posts the announcement. Only the process that
-successfully applies the close result posts an availability-closure announcement,
-so repeated checks do not duplicate it. The announcement intentionally covers
-availability only; activity and host selection will be added to the
-finalization workflow later.
+closes the poll and prepares the selected attendees and activity choices. The
+Discord layer posts the availability result and a separate activity poll when
+there are eligible suggestions. Only the process that successfully closes a
+round posts its messages. The manual `schedule:process` command processes
+availability in MongoDB. Use the local Discord closer to test channel posts.
 
 Production will not use this in-process timer. An external scheduler will call
 the same reusable workflow.

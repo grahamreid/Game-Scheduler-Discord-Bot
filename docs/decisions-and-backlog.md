@@ -31,9 +31,9 @@
 - `/activity history` privately searches prior activity names and calculates
   proposal and popularity statistics from all activity polls in the guild.
 - `/activity wipe` requires Manage Server permission and private confirmation.
-  It clears the guild's activity catalog, suggestions, and votes. Activity
-  polls are kept with the deleted candidate IDs removed, so a poll may have
-  no choices left. Planning rounds and availability responses are kept.
+  It clears the guild's activity catalog and suggestions. It removes the deleted
+  IDs from polls and ballots, which can remain with no choices. Planning rounds
+  and availability responses are kept.
 - A selected host must volunteer and be available on the selected date. Among
   eligible volunteers, choose the least-recent host.
 - `/round wipe` is administrator-only, confirms through a private Discord
@@ -62,7 +62,7 @@
 
 ## Implementation sequence
 
-1. Activity suggestions and voting display.
+1. Publish activity vote totals when all eligible members have voted or one day before the event.
 2. Host volunteering and host-history selection.
 3. Complete final round closure and announcement, including activity discussion
    results and selected host.

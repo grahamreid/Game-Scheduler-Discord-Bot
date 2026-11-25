@@ -13,6 +13,7 @@ import {
   PermissionsBitField
 } from "discord.js";
 import { tallyAvailability } from "../availability";
+import { findActivityVoterIds } from "../db/activity-polls";
 import { getActivitySuggestions } from "../db/activity-suggestions";
 import { findAvailabilityResponses } from "../db/availability-responses";
 import { findGuildSchedulingSettings, saveGuildSchedulingSettings } from "../db/guild-scheduling-settings";
@@ -65,9 +66,10 @@ async function handleRoundStatus(interaction: ChatInputCommandInteraction, guild
     const round = await database.collection<PlanningRoundDocument>("planningRounds")
       .findOne({ guildId }, { sort: { createdAt: -1 } });
     if (round === null) return void await interaction.editReply("There is no planning round for this server.");
-    const [responses, suggestions] = await Promise.all([
+    const [responses, suggestions, voterIds] = await Promise.all([
       findAvailabilityResponses(round._id),
       getActivitySuggestions(round._id, guildId),
+      findActivityVoterIds(round._id),
     ]);
     const slotLines = tallyAvailability(round.candidateSlots, responses)
       .filter(({ votes }) => votes > 0)
@@ -82,6 +84,8 @@ async function handleRoundStatus(interaction: ChatInputCommandInteraction, guild
       slotLines.join("\n") || "No slots selected yet.",
       "**Activity suggestions**",
       suggestions.map((name) => `- ${escapeMarkdown(name)}`).join("\n") || "No activity suggestions yet.",
+      "**Activity voters**",
+      voterIds.map((userId) => `<@${userId}>`).join(", ") || "No activity ballots yet.",
     ].join("\n");
     await interaction.editReply({ content, allowedMentions: { parse: [] } });
     console.log(`/round status sent for round ${round._id}.`);

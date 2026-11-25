@@ -4,6 +4,7 @@
  * use the same workflow while Discord rendering remains in the interaction layer.
  */
 import type { AvailabilityDecision } from "./availability";
+import { prepareActivityPoll, type ActivityPollChoices } from "./activity-voting";
 import { findAvailabilityResponses } from "./db/availability-responses";
 import { findPlanningRound } from "./db/planning-rounds";
 import { closeExpiredRounds } from "./scheduling/close-round";
@@ -17,6 +18,7 @@ export interface AvailabilityClosureResult {
   decision: AvailabilityDecision;
   /** Members available for the winning slot; empty when the round was cancelled. */
   attendingUserIds: string[];
+  activityPoll: ActivityPollChoices | null;
 }
 
 /** Closes expired polls and returns only outcomes this process successfully applied. */
@@ -30,11 +32,13 @@ export async function closeExpiredRoundsAndPrepareResults(now = new Date()): Pro
     if (round === null) continue;
     const responses = await findAvailabilityResponses(round._id);
     let attendingUserIds: string[] = [];
+    let activityPoll: ActivityPollChoices | null = null;
     if (closingResult.decision.kind === "selected") {
       const selectedSlot = closingResult.decision.slot;
       attendingUserIds = responses
         .filter((response) => response.slots.includes(selectedSlot))
         .map((response) => response.userId);
+      activityPoll = await prepareActivityPoll(round._id, round.guildId, attendingUserIds, now);
     }
     preparedResults.push({
       guildId: round.guildId,
@@ -43,6 +47,7 @@ export async function closeExpiredRoundsAndPrepareResults(now = new Date()): Pro
       minimumAttendeeCount: round.minimumAttendeeCount,
       decision: closingResult.decision,
       attendingUserIds,
+      activityPoll,
     });
   }
   return preparedResults;
