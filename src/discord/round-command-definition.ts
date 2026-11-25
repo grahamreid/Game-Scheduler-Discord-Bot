@@ -25,4 +25,4 @@ export const roundCommand = new SlashCommandBuilder()
     .addIntegerOption((option) => option.setName("minimum-attendees").setDescription("Members required on one slot for the round to proceed").setMinValue(1).setRequired(true))
     .addBooleanOption((option) => option.setName("split-weekends").setDescription("Split Saturday and Sunday into Afternoon and Evening slots by default").setRequired(true)))
   .addSubcommand((subcommand) => subcommand.setName("wipe").setDescription("Permanently delete this server's planning rounds after confirmation"))
-  .addSubcommand((subcommand) => subcommand.setName("status").setDescription("Show slot vote counts, activity suggestions, and who voted in the latest round"));
+  .addSubcommand((subcommand) => subcommand.setName("status").setDescription("Show slot votes, initial respondents, activity suggestions, and activity voters for the latest round"));

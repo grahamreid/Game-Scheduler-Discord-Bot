@@ -82,6 +82,8 @@ async function handleRoundStatus(interaction: ChatInputCommandInteraction, guild
       `**${escapeMarkdown(title)}**`,
       "**Availability votes**",
       slotLines.join("\n") || "No slots selected yet.",
+      "**Initial submission respondents**",
+      responses.map(({ userId }) => `<@${userId}>`).join(", ") || "No one has submitted availability yet.",
       "**Activity suggestions**",
       suggestions.map((name) => `- ${escapeMarkdown(name)}`).join("\n") || "No activity suggestions yet.",
       "**Activity voters**",
