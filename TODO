@@ -4,7 +4,7 @@
 *** we need to have a framework that allows this to kick off from local, eventbridge (tentative), and also to force the next schedule event automatically via a command or something (without preventing the regular scheduler from similarly creating that round when the time actually comes too)
 
 * Maintenance
-** make possible responses / messages that users see listed out / templated somewhere so I can see them all clearly and change their phrasing easily
+** make all possible responses / messages that users see listed out / templated somewhere so I can see them all clearly and change their phrasing easily
 ** Review free text input limits and sanitization. Keep secrets out of shared
    logs and interaction captures.
 ** Move validation out of workflow functions where that makes the core logic
@@ -14,20 +14,16 @@
 ** push code to github
 
 * Finishing touches and some optional stuff
-** call it "session" instead of "round"
 ** Add an admin =/activity delete= command for unwanted or duplicate activities.
 ** Consider letting members retract an activity ballot.
 ** Consider reminder messages before an availability deadline.
 ** Refine bot wording, including possible Pooky-themed messages. 
 ** make the visual appearance of the messages more fun and interesting
-** Revisit the
-   terms round, poll, and session after the full workflow is established.
 ** Generalize setup and rollout for multiple independent Discord servers.
 ** Add unit tests and consider capturing Discord interactions for local replay.
 ** Explore consolidation of similar activity names, possibly with AI assistance.
 ** Explore agent passthrough for simplifying the code.
 ** Write =AGENTS.md= to document preferred development practices.
-** refactor / rename / reorganize files to be a bit more straightforward to me
 
 * Final Manual Discord validation and Eventual Unit Test fuel
 ** Use multiple legitimate, manually operated accounts in the private server.
@@ -75,3 +71,8 @@
 ** Run the full flow in the private server before deploying and rolling out
    to the real server.
 ** shouldn't be able to change votes after everyone has submitted their activity ballots and the complete results message has gone out
+
+* refactors
+** refactor / rename / reorganize files to be a bit more straightforward to me
+** call it "session" instead of "round"
+** Revisit the terms round, poll, and session after the full workflow is established.
