@@ -90,6 +90,11 @@ export async function findPlanningRound(id: string): Promise<PlanningRoundDocume
   return round;
 }
 
+/** Finds the latest open round in this server for manual closure. */
+export async function findOpenPlanningRound(guildId: string): Promise<PlanningRoundDocument | null> {
+  return (await rounds()).findOne({ guildId, status: "open" }, { sort: { createdAt: -1 } });
+}
+
 /**
  * Removes the guild's rounds and their responses, suggestions, polls, and ballots.
  * Call this only after an administrator has explicitly confirmed.

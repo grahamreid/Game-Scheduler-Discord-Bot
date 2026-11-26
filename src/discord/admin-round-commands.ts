@@ -18,11 +18,14 @@ import { getActivitySuggestions } from "../db/activity-suggestions";
 import { findAvailabilityResponses } from "../db/availability-responses";
 import { findGuildSchedulingSettings, saveGuildSchedulingSettings } from "../db/guild-scheduling-settings";
 import { getDatabase } from "../db/mongo";
-import { createPlanningRound, wipeGuildRounds, type PlanningRoundDocument } from "../db/planning-rounds";
+import { createPlanningRound, findOpenPlanningRound, wipeGuildRounds, type PlanningRoundDocument } from "../db/planning-rounds";
+import { prepareRoundClosureResult } from "../round-result-workflow";
+import { closeRound } from "../scheduling/close-round";
 import { daysForCadence, generateRoundSlots } from "../slot-generation";
-import { buildRoundPost } from "./round-post";
 import { parseCadence, parseCalendarDate, parseDeadline, parseSurveyLaunchTime } from "./command-parsers";
 import { wipeCancelPrefix, wipeConfirmPrefix } from "./constants";
+import { announceRoundClosures } from "./round-closure-announcer";
+import { buildRoundPost } from "./round-post";
 
 /** Routes an administrator's `/round` subcommand to its focused handler. */
 export async function handleAdminRoundCommand(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -34,9 +37,40 @@ export async function handleAdminRoundCommand(interaction: ChatInputCommandInter
 
   switch (interaction.options.getSubcommand()) {
     case "create": return handleCreateRound(interaction);
+    case "close": return handleCloseRound(interaction, interaction.guildId);
     case "initialize-settings": return handleInitializeSettings(interaction);
     case "status": return handleRoundStatus(interaction, interaction.guildId);
     case "wipe": return handleRoundWipeRequest(interaction);
+  }
+}
+
+/** Closes the server's open round and posts the result in its original channel. */
+async function handleCloseRound(interaction: ChatInputCommandInteraction, guildId: string): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  let roundClosed = false;
+  try {
+    const round = await findOpenPlanningRound(guildId);
+    if (round === null) {
+      await interaction.editReply("There is no open planning round for this server.");
+      return;
+    }
+
+    const now = new Date();
+    const closingResult = await closeRound(round, now);
+    roundClosed = closingResult.closedSuccessfully;
+    if (!roundClosed) {
+      await interaction.editReply("This round is no longer open.");
+      return;
+    }
+
+    const result = await prepareRoundClosureResult(closingResult, now);
+    await announceRoundClosures(interaction.client, [result]);
+    await interaction.editReply(`Closed the round and posted the result in <#${result.channelId}>.`);
+  } catch (error) {
+    console.error("/round close failed:", error);
+    await interaction.editReply(roundClosed
+      ? "The round closed, but the bot could not finish posting to Discord."
+      : "Could not close the current planning round.");
   }
 }
 
@@ -63,6 +97,7 @@ async function handleRoundStatus(interaction: ChatInputCommandInteraction, guild
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   try {
     const database = await getDatabase();
+    // get latest round, open or closed
     const round = await database.collection<PlanningRoundDocument>("planningRounds")
       .findOne({ guildId }, { sort: { createdAt: -1 } });
     if (round === null) return void await interaction.editReply("There is no planning round for this server.");

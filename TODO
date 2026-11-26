@@ -1,7 +1,5 @@
 * Next implementation work
 ** Manual admin commands
-*** Add =/round close= to close the current open round immediately using
-    the scheduled closure workflow.
 *** Add =/round set-event-date= to move a finalized session to another date.
     Use it in the private server to move a session to tomorrow in the guild's
     timezone and exercise the reminder without waiting for the original date.
@@ -31,6 +29,9 @@
 
 * Manual Discord validation
 ** Use multiple legitimate, manually operated accounts in the private server.
+** Run =/round close= before the deadline. Confirm the result and any activity
+   poll appear in the original channel. Repeat the command and check that it
+   reports no open round. Check the cancellation outcome with low turnout.
 ** As a regular member, run =/preferences venue= to see the in-person default,
    then save Virtual and confirm it reads back privately. Open a round and
    check =host= and =virtualPreferenceUserIds= in MongoDB. Change that member's
@@ -58,6 +59,7 @@
 ** Check activity results for both early completion and the day-before cutoff
    with ballots still missing. Retest with a late final ballot after adding
    the second post.
+** confirm I can change my activity votes, and also de-select previous voted activities, and/or even undo my vote completely
 ** Check that a round with no eligible suggestions produces no activity poll.
 ** Run the full flow in the private server before deploying and rolling out
    to the real server.
@@ -70,6 +72,7 @@
    easier to read.
 ** clarify in suggestion input that they can browse activity history oustide of the modal/form
 ** don't say "your activity was unchanged", just say what their current suggestion is.
+** push code to github
 
 * Later product ideas
 ** call it "session" instead of "round"

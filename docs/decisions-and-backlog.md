@@ -56,14 +56,15 @@
   weekend Afternoon/Evening split. They also define the minimum number of
   available attendees required for a slot to win. Manual round creation starts
   immediately.
+- Administrators can run `/round close` to close the current open round early.
+  It uses the same rules and channel announcements as scheduled closure.
 - Local development can opt into availability closing and scheduled activity
   results through `ENABLE_LOCAL_ROUND_CLOSER=true`. Production will use an
   external trigger.
 
 ## Implementation sequence
 
-1. Add administrator commands to close the current round immediately and
-   change the event date of a finalized round.
+1. Add an administrator command to change the event date of a finalized round.
 2. Add day-before reminders to the local scheduler. Move a finalized test
    session to tomorrow in the guild's timezone and verify that the reminder
    uses the new date and posts once.

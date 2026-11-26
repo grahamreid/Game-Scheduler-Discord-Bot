@@ -203,6 +203,11 @@ instants.
 
 ## Deadline processing
 
+`/round close` lets an administrator close the server's current open round
+before its deadline. It uses the same selection and announcement workflow as
+the local timer. The result and any activity poll go to the round's original
+channel. The administrator gets a private confirmation.
+
 `schedule:process` is an idempotent, manually runnable deadline processor. It
 finds `open` rounds whose `deadline` has passed, then counts each member's
 current availability response. Submissions stop at the deadline even if the

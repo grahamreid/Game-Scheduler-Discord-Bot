@@ -18,7 +18,7 @@ export interface RoundClosingResult {
   decision: AvailabilityDecision;
   attendingUserIds: string[];
   /** True only when this process successfully persisted the availability closure. */
-  closedByThisRun: boolean;
+  closedSuccessfully: boolean;
 }
 
 /** Determines and persists the availability outcome for one open round. */
@@ -31,8 +31,8 @@ export async function closeRound(round: PlanningRoundDocument, closedAt = new Da
     : 3;
   const decision = determineWinningSlot(round.candidateSlots, responses, minimumAttendeeCount);
   if (decision.kind === "cancelled") {
-    const closedByThisRun = await cancelForInsufficientAvailability(round._id, closedAt);
-    return { roundId: round._id, decision, attendingUserIds: [], closedByThisRun };
+    const closedSuccessfully = await cancelForInsufficientAvailability(round._id, closedAt);
+    return { roundId: round._id, decision, attendingUserIds: [], closedSuccessfully };
   }
 
   const selectedSlot = decision.slot;
@@ -44,8 +44,8 @@ export async function closeRound(round: PlanningRoundDocument, closedAt = new Da
   const eventDate = selectedSlot.slice(0, 10);
   const volunteerIds = attendees.filter(({ canHost }) => canHost === true).map(({ userId }) => userId);
   const host = isVirtual ? "virtual" : await chooseInPersonHost(round.guildId, volunteerIds, eventDate);
-  const closedByThisRun = await finalizePlanningRound(round._id, selectedSlot, eventDate, host, closedAt);
-  return { roundId: round._id, decision, attendingUserIds, closedByThisRun };
+  const closedSuccessfully = await finalizePlanningRound(round._id, selectedSlot, eventDate, host, closedAt);
+  return { roundId: round._id, decision, attendingUserIds, closedSuccessfully };
 }
 
 /** Gives first-time hosts priority, then orders volunteers by least recent hosting date. */
