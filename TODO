@@ -1,10 +1,6 @@
 * Next implementation work
 ** Hosting and round result
-*** Collect host volunteers in the initial round form and keep hosting history.
-*** Choose the least recent host among volunteers available for the selected
-    slot.
-*** Add the host and location or joining details to the round announcement.
-    The availability result already shows the selected slot and attendees.
+*** Add location or joining details to the round announcement.
 ** Manual round controls
 *** Add an administrator command to close the current round immediately using
     the same workflow as scheduled closure.
@@ -33,11 +29,19 @@
    preference to In person and set another member's to Virtual. Open a second
    round and confirm that each round kept the preferences from when it opened.
    Confirm preferences survive =/round wipe=.
-** For a round that offers either format, change the venue in the response
-   form and reopen the form to check that the new choice stayed selected.
+** For a round that offers either format, check the venue preselection,
+   change it in the form, then reopen the form to confirm the change saved.
    Check that a virtual preference only changes the result when the member
    is available for the winning slot. After a virtual result, confirm that
-   the next opening post says in person only and omits the venue picker.
+   the next opening post only opens the in-person form.
+** Check that the flexible venue picker can save an in-person hosting offer
+   and that in-person-only rounds ask about hosting directly. Reopen each to
+   check the previous answer. Switch a volunteer to virtual and verify that
+   their hosting offer is withdrawn.
+** Check that an eligible first-time host takes priority, then that the least
+   recent host wins when all eligible volunteers have hosted. Verify that a
+   volunteer who missed the winning slot is excluded and that an in-person
+   session still gets announced if nobody can host.
 ** Check that members without Manage Server cannot use either wipe command.
    Check whether Discord hides the commands for those members.
 ** Check that creating a newer round cancels the previous open one and that
@@ -51,6 +55,7 @@
    and still gets a reminder once reminders are implemented.
 ** Run the full flow in the private server before deploying and rolling out
    to the real server.
+** verify that if no-one volunteers to host that it becomes virtual. If in-person only and no-one volunteers, it's cancelled
 
 * Maintenance
 ** Replace deprecated ephemeral reply options with Discord's flags API.
@@ -62,6 +67,7 @@
 ** don't say "your activity was unchanged", just say what their current suggestion is.
 
 * Later product ideas
+** call it "session" instead of "round"
 ** Add an admin =/activity delete= command for unwanted or duplicate activities.
 ** Consider letting members retract an activity ballot.
 ** Consider reminder messages before an availability deadline.

@@ -19,19 +19,20 @@ export function buildRoundPost(round: PlanningRoundDocument): {
   content: string;
   components: ActionRowBuilder<ButtonBuilder>[];
 } {
-  const button = new ButtonBuilder()
-    .setCustomId(`${availabilityFormButtonPrefix}${round._id}`)
-    .setLabel("Submit availability")
-    .setStyle(ButtonStyle.Primary);
-
   const title = round.title === null ? "Board-game Scheduling" : round.title;
-  const venueDescription = round.venuePolicy === "either"
-    ? "**Venue: In person or virtual.** The session will be virtual if anyone available for the selected slot prefers it."
+  const offersVenueChoice = round.venuePolicy === "either";
+  const venueDescription = offersVenueChoice
+    ? "**Venue: In person or virtual.** You can change your preference in the form. The session will be virtual if anyone available for the selected slot prefers it."
     : "**Venue: In person only.**";
+  const formButtonId = `${availabilityFormButtonPrefix}${round._id}`;
+  const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder().setCustomId(formButtonId).setLabel("Submit availability").setStyle(ButtonStyle.Primary),
+  );
+
   return {
     // Sends a Discord timestamp templated to show in relative time until the deadline.
-    content: `**${title}**\n${venueDescription}\nChoose your available slots and optionally suggest an activity. You can reopen the form to make changes. Responses close <t:${Math.floor(round.deadline.getTime() / 1000)}:R>.`,
-    components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)],
+    content: `**${title}**\n${venueDescription}\nShare your availability and optionally suggest an activity. You can respond again to make changes. Responses close <t:${Math.floor(round.deadline.getTime() / 1000)}:R>.`,
+    components: [buttons],
   };
 }
 
@@ -51,7 +52,7 @@ export async function handleAvailabilityFormButton(interaction: ButtonInteractio
       });
       return;
     }
-    await interaction.showModal(buildRoundResponseModal(round, interaction.user.id, previous?.slots ?? []));
+    await interaction.showModal(buildRoundResponseModal(round, interaction.user.id, previous));
   } catch (error) {
     console.error(`Could not open availability form for round ${roundId}:`, error instanceof Error ? error.stack : String(error));
     if (!interaction.replied) {

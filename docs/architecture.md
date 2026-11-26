@@ -27,12 +27,14 @@ share the same `MONGODB_URI`.
 
 1. An administrator creates an `open` round with possible event slots and an
    overall deadline. The round records who currently prefers virtual.
-2. Members select the slots that work for them and can suggest an activity.
+2. Members select the slots that work for them, can suggest an activity, and
+   can volunteer to host when responding in person.
 3. At the deadline, the scheduler counts availability. A tie selects the
    alphabetically earlier slot.
 4. The round becomes `finalized` with a winning slot and attendee list, or
    `cancelled` for insufficient turnout. Eligible suggestions get a separate
-   activity poll. Host selection is planned for a later phase.
+   activity poll. For an in-person session, the bot selects an available
+   volunteer and includes them in the availability announcement.
 
 The complete status list is deliberately small: `open`, `finalized`, and
 `cancelled`.
@@ -60,7 +62,7 @@ memberPreferences
   _id, guildId, userId, venue (optional)
 
 availabilityResponses
-  roundId, userId, slots, submittedAt
+  roundId, userId, slots, canHost, submittedAt
 
 activities
   _id, guildId, name, normalizedName, createdByUserId, createdAt
@@ -74,12 +76,6 @@ activitySuggestions
 roundActivityPolls
   _id, roundId, guildId, eligibleUserIds, candidateActivityIds, voteLimit,
   resultsPublishedAt, createdAt
-
-hostingVolunteers
-  roundId, userId, volunteeredAt
-
-hostingHistory
-  roundId, guildId, userId, hostedOn, recordedAt
 
 roundAnnouncements
   roundId, kind, discordMessageId, postedAt
@@ -133,20 +129,30 @@ hold additional preferences later. Round wipes preserve these records.
 
 Each new round saves the user IDs that preferred virtual at launch in
 `virtualPreferenceUserIds`. Members outside that list default to in person.
-Changes to a saved server preference apply to future rounds. For a round that
-allows either format, the response form starts with the member's current
-round choice. Changing it adds or removes their ID from the round's list.
+Changes to a saved server preference apply to future rounds. When either
+format is allowed, **Submit availability** opens the form with the member's
+current round preference preselected. The member can change it in the form.
+Submitting the form adds or removes their ID from the round's virtual list.
+On rounds that allow either format, members volunteer by choosing **In person
+and I can host** in the venue picker. In-person-only rounds ask about hosting
+directly. The form remembers the member's last answer. Choosing **Virtual**
+withdraws any earlier hosting offer.
 
 The opening post says which formats the round offers. If the most recently
-finalized round in the guild was virtual, the next round is in person only
-and its form omits the venue picker. Otherwise it offers either format. At
+finalized round in the guild was virtual, the next round offers only the
+in-person form. Otherwise it offers either format. At
 closure, a round that offers either format becomes virtual if any attendee
 available for the winning slot prefers virtual.
 
-The host starts as `null`. Closing a successful round sets it to `"virtual"`
-or `"in-person"` and the announcement shows the selected venue. The latter
-value is a placeholder until host selection can store a Discord user ID. Older
-open rounds without a venue policy close as in-person sessions.
+The host starts as `null`. Closing a successful round stores `"virtual"` for
+an online session or the chosen host's Discord ID for an in-person session.
+The bot considers only members who volunteered and selected the winning slot.
+It gives first-time hosts priority, then picks the person with the earliest
+last hosting date. Ties use ascending Discord user ID. Hosting history comes
+from finalized rounds in the same guild with event dates before the new
+session. If no eligible member volunteered, the round still finalizes and the
+announcement says a host is needed. `/round wipe` also removes hosting history
+because it is stored on the rounds.
 
 ## Activity suggestions and discussion votes
 

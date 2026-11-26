@@ -4,18 +4,26 @@
 import { MessageFlags, ModalBuilder, type ModalSubmitInteraction } from "discord.js";
 import { isInitialPollOpen, submitAvailability } from "../availability";
 import { findPlanningRound, setRoundVenuePreference, type PlanningRoundDocument } from "../db/planning-rounds";
+import type { AvailabilityResponse } from "../types";
 import { activityNameFieldId, buildActivitySuggestionField, saveSuggestedActivity } from "./activity-suggestion-modal";
 import { availabilityFormModalPrefix, venueLabels } from "./constants";
 
 const availableSlotsFieldId = "available-slots";
 const venueFieldId = "round-venue";
+const hostingFieldId = "can-host";
+const inPersonWithHosting = "in-person-host";
 
-/** Builds the response form and shows the venue picker for rounds that offer a choice. */
-export function buildRoundResponseModal(round: PlanningRoundDocument, userId: string, previousSlots: string[]): ModalBuilder {
-  const selectedSlots = new Set(previousSlots);
+/** Builds the response form with venue and hosting options that match the round. */
+export function buildRoundResponseModal(
+  round: PlanningRoundDocument,
+  userId: string,
+  previous: AvailabilityResponse | null,
+): ModalBuilder {
+  const selectedSlots = new Set(previous?.slots ?? []);
+  const alreadyVolunteered = previous?.canHost === true;
   const modal = new ModalBuilder()
     .setCustomId(`${availabilityFormModalPrefix}${round._id}`)
-    .setTitle("Round availability")
+    .setTitle("Round response")
     .addLabelComponents(
       (label) => label
         .setLabel("Which slots work for you?")
@@ -40,14 +48,26 @@ export function buildRoundResponseModal(round: PlanningRoundDocument, userId: st
         .setMinValues(1)
         .setMaxValues(1)
         .addOptions(
-          { label: venueLabels["in-person"], value: "in-person", default: !prefersVirtual },
+          { label: venueLabels["in-person"], value: "in-person", default: !prefersVirtual && !alreadyVolunteered },
+          { label: "In person and I can host", value: inPersonWithHosting, default: !prefersVirtual && alreadyVolunteered },
           { label: venueLabels.virtual, value: "virtual", default: prefersVirtual },
+        )));
+  } else {
+    modal.addLabelComponents((label) => label
+      .setLabel("Can you host this session in person?")
+      .setStringSelectMenuComponent((menu) => menu
+        .setCustomId(hostingFieldId)
+        .setMinValues(1)
+        .setMaxValues(1)
+        .addOptions(
+          { label: "Yes, I can host", value: "yes", default: alreadyVolunteered },
+          { label: "No", value: "no", default: !alreadyVolunteered },
         )));
   }
   return modal;
 }
 
-/** Saves the response, including the round venue choice and activity suggestion when provided. */
+/** Saves availability, hosting willingness, the venue choice, and any suggestion. */
 export async function handleRoundResponseModal(interaction: ModalSubmitInteraction): Promise<void> {
   // The gateway also routes submissions from other modals through this handler.
   if (!interaction.customId.startsWith(availabilityFormModalPrefix)) return;
@@ -65,13 +85,16 @@ export async function handleRoundResponseModal(interaction: ModalSubmitInteracti
     const name = interaction.fields.getTextInputValue(activityNameFieldId).trim();
     const slots = interaction.fields.getStringSelectValues(availableSlotsFieldId);
     if (slots.length === 0) throw new Error("Select at least one available slot.");
-    const venue = round.venuePolicy === "either" ? interaction.fields.getStringSelectValues(venueFieldId)[0] : null;
-    if (venue !== null && venue !== "in-person" && venue !== "virtual") {
-      throw new Error("Choose In person or Virtual for this round.");
-    }
-    await submitAvailability(roundId, interaction.user.id, [...slots]);
+    const offersVenueChoice = round.venuePolicy === "either";
+    const venueChoice = offersVenueChoice ? interaction.fields.getStringSelectValues(venueFieldId)[0] : "in-person";
+    const venue = venueChoice === "virtual" ? "virtual" : "in-person";
+    const canHost = offersVenueChoice
+      ? venueChoice === inPersonWithHosting
+      : interaction.fields.getStringSelectValues(hostingFieldId)[0] === "yes";
+    await submitAvailability(roundId, interaction.user.id, [...slots], canHost);
     saved = "Availability saved.";
-    if (venue !== null) {
+    if (venue === "in-person") saved += canHost ? " You volunteered to host." : " You did not volunteer to host.";
+    if (offersVenueChoice) {
       if (!await setRoundVenuePreference(roundId, interaction.user.id, venue)) {
         throw new Error("The round closed before your venue preference could be saved.");
       }

@@ -126,15 +126,28 @@ export async function findExpiredRounds(now: Date): Promise<PlanningRoundDocumen
   }).toArray();
 }
 
+/** Finds each volunteer's most recent hosting */
+export async function findLastHostedDates(guildId: string, userIds: string[], eventDate: string): Promise<Map<string, string>> {
+  const previousSessions = await (await rounds())
+    .find({ guildId, status: "finalized", host: { $in: userIds }, eventDate: { $lt: eventDate } })
+    .sort({ eventDate: -1 })
+    .project<{ host: string; eventDate: string }>({ _id: 0, host: 1, eventDate: 1 })
+    .toArray();
+  const lastHostedDates = new Map<string, string>();
+  for (const session of previousSessions) {
+    if (!lastHostedDates.has(session.host)) lastHostedDates.set(session.host, session.eventDate);
+  }
+  return lastHostedDates;
+}
+
 /** Records the winning slot and host choice and finalizes the round in one write. */
 export async function finalizePlanningRound(
   roundId: string,
   slot: string,
-  host: string,
+  eventDate: string,
+  host: string | null,
   closedAt: Date,
 ): Promise<boolean> {
-  // Every generated slot starts with its YYYY-MM-DD calendar date.
-  const eventDate = slot.slice(0, 10);
   const result = await (await rounds()).updateOne(
     { _id: roundId, status: "open" },
     { $set: { status: "finalized", selectedSlot: slot, eventDate, host, finalizedAt: closedAt, updatedAt: closedAt } },

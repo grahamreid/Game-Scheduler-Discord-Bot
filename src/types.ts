@@ -62,7 +62,7 @@ export interface PlanningRound {
   selectedSlot: string | null;
   /** Local calendar date of the selected slot, set when the round is finalized. */
   eventDate: string | null;
-  /** A Discord user ID, "in-person" while a host is pending, "virtual", or null before selection. */
+  /** A Discord user ID for an in-person host, "virtual" for an online session, or null when no host is assigned. */
   host: string | null;
   venuePolicy: RoundVenuePolicy;
   /** Members who prefer virtual for this round, initialized from saved preferences when it opens. */
@@ -77,6 +77,8 @@ export interface AvailabilityResponse {
   roundId: string;
   userId: string;
   slots: string[];
+  /** Whether the member volunteered to host this in-person session. */
+  canHost?: boolean;
   submittedAt: Date;
 }
 

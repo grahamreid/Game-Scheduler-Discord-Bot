@@ -7,8 +7,9 @@ import { determineWinningSlot, type AvailabilityDecision } from "../availability
 import { findAvailabilityResponses } from "../db/availability-responses";
 import {
   cancelForInsufficientAvailability,
-  findExpiredRounds,
   finalizePlanningRound,
+  findExpiredRounds,
+  findLastHostedDates,
   type PlanningRoundDocument,
 } from "../db/planning-rounds";
 
@@ -35,14 +36,32 @@ export async function closeRound(round: PlanningRoundDocument, closedAt = new Da
   }
 
   const selectedSlot = decision.slot;
-  const attendingUserIds = responses
-    .filter(({ slots }) => slots.includes(selectedSlot))
-    .map(({ userId }) => userId);
+  const attendees = responses.filter(({ slots }) => slots.includes(selectedSlot));
+  const attendingUserIds = attendees.map(({ userId }) => userId);
   const isVirtual = round.venuePolicy === "either"
     && attendingUserIds.some((userId) => round.virtualPreferenceUserIds.includes(userId));
-  const host = isVirtual ? "virtual" : "in-person";
-  const closedByThisRun = await finalizePlanningRound(round._id, selectedSlot, host, closedAt);
+  // Every generated slot starts with its YYYY-MM-DD calendar date.
+  const eventDate = selectedSlot.slice(0, 10);
+  const volunteerIds = attendees.filter(({ canHost }) => canHost === true).map(({ userId }) => userId);
+  const host = isVirtual ? "virtual" : await chooseInPersonHost(round.guildId, volunteerIds, eventDate);
+  const closedByThisRun = await finalizePlanningRound(round._id, selectedSlot, eventDate, host, closedAt);
   return { roundId: round._id, decision, attendingUserIds, closedByThisRun };
+}
+
+/** Gives first-time hosts priority, then orders volunteers by least recent hosting date. */
+async function chooseInPersonHost(guildId: string, volunteerIds: string[], eventDate: string): Promise<string | null> {
+  if (volunteerIds.length === 0) return null;
+  if (volunteerIds.length === 1) return volunteerIds[0];
+
+  // gets the latest host date per volunteer, then whichever of those was longest ago is the decided host
+  const lastHostedDates = await findLastHostedDates(guildId, volunteerIds, eventDate);
+  volunteerIds.sort((left, right) => {
+    // if volunteer has never hosted, empty string => sorts to the front to make sure new hosts get priority
+    const leftDate = lastHostedDates.get(left) ?? "";
+    const rightDate = lastHostedDates.get(right) ?? "";
+    return leftDate.localeCompare(rightDate) || left.localeCompare(right);
+  });
+  return volunteerIds[0];
 }
 
 /** Closes every round whose configured deadline has passed. Safe to call repeatedly. */

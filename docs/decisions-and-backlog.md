@@ -35,15 +35,18 @@
   IDs from polls and ballots, which can remain with no choices. Planning rounds
   and availability responses are kept.
 - A selected host must volunteer and be available on the selected date. Among
-  eligible volunteers, choose the least-recent host.
+  eligible volunteers, prefer first-time hosts and then the least recent host.
+  The flexible venue picker offers hosting as an in-person choice. Rounds
+  that are in person only ask about hosting directly. Hosting history comes
+  from earlier finalized rounds in the same server.
 - Members can read and save their server preference with `/preferences venue`.
   Each round records who preferred virtual at launch. Everyone else defaults
-  to in person. Members can change their choice in the response form when the
-  round offers either format.
+  to in person. Members can change their preselected choice inside the form
+  when the round offers either format.
 - The most recently finalized virtual session makes the next round in person
   only. Otherwise a round becomes virtual if someone available for the winning
-  slot prefers virtual. The host field uses `"in-person"` until an individual
-  host can be selected.
+  slot prefers virtual. If an in-person round has no eligible host, it still
+  finalizes and the announcement says a volunteer is needed.
 - `/round wipe` is administrator-only, confirms through a private Discord
   button, and deletes the current guild's rounds along with their availability
   responses, activity suggestions, polls, and ballots. It keeps the guild's
@@ -59,8 +62,8 @@
 
 ## Implementation sequence
 
-1. Collect host volunteers, select an eligible host using hosting history, and
-   include the host and location in the round result.
+1. Validate hosting in the private Discord server and add location or joining
+   details to the round result.
 2. Add manual controls for closing a round and testing date-based behavior.
    Validate the existing activity voting flow in the private Discord server,
    then add the second activity totals post.

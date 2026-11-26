@@ -66,6 +66,7 @@ export async function submitAvailability(
   roundId: string,
   userId: string,
   slots: string[],
+  canHost: boolean,
   now = new Date(),
 ): Promise<void> {
   const round = await findPlanningRound(roundId);
@@ -79,5 +80,5 @@ export async function submitAvailability(
   if (uniqueSelections.size !== slots.length || [...uniqueSelections].some((slot) => !allowedSlots.has(slot))) {
     throw new Error("Availability contains an invalid slot.");
   }
-  await saveAvailabilityResponse({ roundId, userId, slots, submittedAt: now });
+  await saveAvailabilityResponse({ roundId, userId, slots, canHost, submittedAt: now });
 }
