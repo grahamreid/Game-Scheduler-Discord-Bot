@@ -69,17 +69,14 @@
 
 ## Implementation sequence
 
-1. Validate noon reminders in the private server by moving a finalized test
-   session to tomorrow and checking that the reminder uses the new date and
-   posts once.
-2. Validate hosting in the private Discord server and add location or joining
-   details.
-3. Validate the activity voting flow, including the complete totals post when
-   the last ballot arrives after the reminder.
-4. Configure the scheduling channel and automate recurring round creation.
-5. Validate the full flow in the private server, then deploy with an external
-   scheduler and roll it out to the real server. EventBridge, Lambda, and API
-   Gateway remain AWS options.
+1. Configure the scheduling channel and automate recurring round creation.
+   Share the launch workflow between local scheduling, a manual trigger, and
+   the eventual production scheduler.
+2. Finish the session messages and ballot workflow. Add location or joining
+   details and close activity voting after the complete totals are posted.
+3. Run the full [private-server checklist](../TODO) and deploy to the real
+   server with an external scheduler. EventBridge, Lambda, and API Gateway
+   remain AWS options.
 
 The [TODO list](../TODO) holds the implementation details, manual checks, and
 deferred ideas. Validate each step in the private server as it lands.

@@ -1,78 +1,71 @@
 * Next implementation work
-** Launch rounds automatically from the configured first survey date, launch
-   time, timezone, and weekly or biweekly cadence.
-*** we need to have a framework that allows this to kick off from local, eventbridge (tentative), and also to force the next schedule event automatically via a command or something (without preventing the regular scheduler from similarly creating that round when the time actually comes too)
+** Recurring rounds
+*** Save the scheduling channel in guild settings. Use the configured first
+    survey date, launch time, timezone, and weekly or biweekly cadence.
+*** Reuse one launch workflow for the local scheduler, the eventual production
+    scheduler, and a manual trigger. Let admins force a launch without consuming
+    the scheduled occurrence.
+** Session messages and voting
+*** Make the suggestion form say to browse =/activity history= outside the form.
+    When a member leaves the field blank, show their current suggestion in the
+    confirmation instead of saying it was unchanged.
 
-* Maintenance
-** make all possible responses / messages that users see listed out / templated somewhere so I can see them all clearly and change their phrasing easily
-** Review free text input limits and sanitization. Keep secrets out of shared
-   logs and interaction captures.
-** Move validation out of workflow functions where that makes the core logic
-   easier to read.
-** clarify in suggestion input that they can browse activity history oustide of the modal/form
-** don't say "your activity was unchanged", just say what their current suggestion is.
-** push code to github
+* Manual Discord validation
+** Use multiple legitimate, manually operated accounts in the private server.
+** Round lifecycle and permissions
+*** Run =/round close= before the deadline and check the result and any activity
+    poll appear in the original channel. A second close should find no open
+    round. Check low turnout cancellation and that creating a new round cancels
+    the previous open one.
+*** Use =/round set-event-date= on a finalized latest round and check that
+    =/round status= shows the new date and original winning slot. Check that an
+    invalid date or an open or cancelled latest round is rejected.
+*** Check that members without Manage Server cannot use either wipe command
+    and see whether Discord hides those commands from them.
+** Venue and hosting
+*** Read the default in-person preference, save Virtual, and confirm it reads
+    back privately. Create rounds before and after changing saved preferences.
+    Confirm each round keeps its opening preferences, starts with no host, and
+    that =/round wipe= preserves member preferences.
+*** Check that reopening a form preselects the last round choice. On flexible
+    rounds, volunteer using the venue picker, then switch to Virtual and confirm
+    the offer is withdrawn. Check that in-person-only rounds ask about hosting
+    directly.
+*** With an eligible host, check that only virtual preferences from the winning
+    slot affect the result. Check that the next round after a virtual session
+    opens in person only.
+    Confirm the first-time or least recent eligible host wins, a volunteer who
+    missed the winning slot is excluded, and no eligible host means a virtual
+    fallback even on an in-person-only round.
+** Activity results and reminders
+*** Change a ballot by replacing and removing choices. Confirm the tally uses
+    the latest ballot and =/round status= lists the voter once. After the vote
+    lock is implemented, confirm changes are rejected after the complete post.
+*** Move the latest finalized session to tomorrow with =/round set-event-date=.
+    Confirm it stays quiet before noon in the guild's timezone, then posts one
+    reminder using the new date. Cover sessions with and without activity polls
+    and a session with a newer round open. Leave a ballot missing to check the partial
+    totals in the reminder, then submit the last ballot and check that one
+    complete totals post follows.
+*** confirm can't submit ballot changes after the complete activity totals are posted or event is over
 
-* Finishing touches and some optional stuff
+* Maintenance and rollout
+** Collect user-facing messages in one place for editing. Refine their wording
+   and appearance, including possible Pooky-themed messages.
+** Simplify file organization and separate validation from workflow logic
+   where it helps readability. Revisit round, poll, and session terminology,
+   with session as the preferred user-facing term.
+** Review free text validation and keep secrets out of logs and captures.
+** Push the code to GitHub. Validate the full workflow in the private server
+   before deploying to the real server.
+
+* Optional follow-ups
 ** Add an admin =/activity delete= command for unwanted or duplicate activities.
-** Consider letting members retract an activity ballot.
+   Explore consolidating similar names, possibly with AI assistance.
+** Consider letting members retract an activity ballot completely.
 ** Consider reminder messages before an availability deadline.
-** Refine bot wording, including possible Pooky-themed messages. 
-** make the visual appearance of the messages more fun and interesting
 ** Generalize setup and rollout for multiple independent Discord servers.
-** Add unit tests and consider capturing Discord interactions for local replay.
-** Explore consolidation of similar activity names, possibly with AI assistance.
+** Add unit tests based on the private-server checklist. Consider capturing
+   Discord interactions for local replay.
 ** Explore agent passthrough for simplifying the code.
 ** Write =AGENTS.md= to document preferred development practices.
-
-* Final Manual Discord validation and Eventual Unit Test fuel
-** Use multiple legitimate, manually operated accounts in the private server.
-** Run =/round close= before the deadline. Confirm the result and any activity
-   poll appear in the original channel. Repeat the command and check that it
-   reports no open round. Check the cancellation outcome with low turnout.
-** Move the latest round after finalization with =/round set-event-date= and confirm
-   =/round status= shows the new date and original winning slot. Try an invalid
-   date, and check that the command is rejected when the latest round is open
-   or cancelled.
-** As a regular member, run =/preferences venue= to see the in-person default,
-   then save Virtual and confirm it reads back privately. Open a round and
-   check =host= and =virtualPreferenceUserIds= in MongoDB. Change that member's
-   preference to In person and set another member's to Virtual. Open a second
-   round and confirm that each round kept the preferences from when it opened.
-   Confirm preferences survive =/round wipe=.
-** For a round that offers either format, check the venue preselection,
-   change it in the form, then reopen the form to confirm the change saved.
-   Check that a virtual preference only changes the result when the member
-   is available for the winning slot. After a virtual result, confirm that
-   the next opening post only opens the in-person form.
-** Check that the flexible venue picker can save an in-person hosting offer
-   and that in-person-only rounds ask about hosting directly. Reopen each to
-   check the previous answer. Switch a volunteer to virtual and verify that
-   their hosting offer is withdrawn.
-** Check that an eligible first-time host takes priority, then that the least
-   recent host wins when all eligible volunteers have hosted. Verify that a
-   volunteer who missed the winning slot is excluded.
-** Check that a round with enough attendees and no eligible host falls back
-   to virtual, including when the opening post offers only the in-person form.
-** Check that members without Manage Server cannot use either wipe command.
-   Check whether Discord hides the commands for those members.
-** Check that creating a newer round cancels the previous open one and that
-   a round with insufficient availability is cancelled at its deadline.
-** Check that activity totals use the latest ballot when someone votes again
-   and that =/round status= still lists the voter once.
-** Use =/round set-event-date= to move a finalized test session to tomorrow.
-   Confirm there is no reminder before noon in the guild's timezone and that
-   the first later scheduler check posts one reminder with the updated date.
-   Check sessions with and without activity polls, including when a newer round
-   is open. Leave a ballot missing to check partial totals in the reminder,
-   then submit the last ballot to check that one complete totals post follows.
-** confirm I can change my activity votes, and also de-select previous voted activities, and/or even undo my vote completely
-** Check that a round with no eligible suggestions produces no activity poll.
-** Run the full flow in the private server before deploying and rolling out
-   to the real server.
-** shouldn't be able to change votes after everyone has submitted their activity ballots and the complete results message has gone out
-
-* refactors
-** refactor / rename / reorganize files to be a bit more straightforward to me
-** call it "session" instead of "round"
-** Revisit the terms round, poll, and session after the full workflow is established.
