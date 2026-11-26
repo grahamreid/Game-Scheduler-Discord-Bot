@@ -1,25 +1,33 @@
 * Next implementation work
+** Manual admin commands
+*** Add =/round close= to close the current open round immediately using
+    the scheduled closure workflow.
+*** Add =/round set-event-date= to move a finalized session to another date.
+    Use it in the private server to move a session to tomorrow in the guild's
+    timezone and exercise the reminder without waiting for the original date.
+** Day-before session reminder
+*** Use the local scheduler to send one reminder per upcoming finalized
+    session when the guild reaches the day before its event date.
+*** Find upcoming sessions even when a newer round is open. Cover sessions
+    with and without an activity poll.
+*** Move a finalized test session to tomorrow and confirm its reminder uses
+    the updated date. Check that later scheduler runs send no duplicate.
 ** Hosting and round result
 *** Add location or joining details to the round announcement.
-** Manual round controls
-*** Add an administrator command to close the current round immediately using
-    the same workflow as scheduled closure.
-*** Add an administrator command to set a round's event date for testing
-    reminders and voting cutoffs.
+*** If nobody eligible volunteers, switch to virtual when the round allows
+    it and cancel when the round is in person only. Verify both outcomes in
+    the private Discord server.
 ** Activity results follow-up
 *** Validate the current publication triggers in the private Discord server.
 *** If the cutoff arrives before all ballots are in, post partial totals. Post
     updated totals once everyone has voted, through the end of the event date
     in the guild's timezone. If everyone votes before the cutoff, post once.
 
-* Recurrence and notifications
+* Recurring round creation
 ** Save the scheduling channel in guild settings and scope round actions to
    the intended channel and round state.
 ** Launch rounds automatically from the configured first survey date, launch
    time, timezone, and weekly or biweekly cadence.
-** Send a day-before reminder for each upcoming finalized session, including
-   sessions with no activity poll. Check every upcoming session even when a
-   newer round is open.
 
 * Manual Discord validation
 ** Use multiple legitimate, manually operated accounts in the private server.
@@ -40,8 +48,7 @@
    their hosting offer is withdrawn.
 ** Check that an eligible first-time host takes priority, then that the least
    recent host wins when all eligible volunteers have hosted. Verify that a
-   volunteer who missed the winning slot is excluded and that an in-person
-   session still gets announced if nobody can host.
+   volunteer who missed the winning slot is excluded.
 ** Check that members without Manage Server cannot use either wipe command.
    Check whether Discord hides the commands for those members.
 ** Check that creating a newer round cancels the previous open one and that
@@ -51,11 +58,9 @@
 ** Check activity results for both early completion and the day-before cutoff
    with ballots still missing. Retest with a late final ballot after adding
    the second post.
-** Check that a round with no eligible suggestions produces no activity poll
-   and still gets a reminder once reminders are implemented.
+** Check that a round with no eligible suggestions produces no activity poll.
 ** Run the full flow in the private server before deploying and rolling out
    to the real server.
-** verify that if no-one volunteers to host that it becomes virtual. If in-person only and no-one volunteers, it's cancelled
 
 * Maintenance
 ** Replace deprecated ephemeral reply options with Discord's flags API.

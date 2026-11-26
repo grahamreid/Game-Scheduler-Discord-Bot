@@ -62,14 +62,17 @@
 
 ## Implementation sequence
 
-1. Validate hosting in the private Discord server and add location or joining
-   details to the round result.
-2. Add manual controls for closing a round and testing date-based behavior.
-   Validate the existing activity voting flow in the private Discord server,
-   then add the second activity totals post.
-3. Configure the scheduling channel, automate recurring round creation, and
-   send day-before reminders for upcoming sessions.
-4. Validate the full flow in the private server, then deploy with an external
+1. Add administrator commands to close the current round immediately and
+   change the event date of a finalized round.
+2. Add day-before reminders to the local scheduler. Move a finalized test
+   session to tomorrow in the guild's timezone and verify that the reminder
+   uses the new date and posts once.
+3. Validate hosting in the private Discord server. Add location or joining
+   details and implement the planned behavior for rounds with no eligible host.
+4. Validate the existing activity voting flow, then add the second activity
+   totals post.
+5. Configure the scheduling channel and automate recurring round creation.
+6. Validate the full flow in the private server, then deploy with an external
    scheduler and roll it out to the real server. EventBridge, Lambda, and API
    Gateway remain AWS options.
 
