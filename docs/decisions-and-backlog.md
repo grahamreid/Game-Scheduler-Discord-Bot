@@ -26,8 +26,8 @@
   later if needed.
 - Eligible attendees may vote for up to `ceil(attendeeCount / 2)` candidates.
   Ballots can be revised through the event date in the guild's timezone. The
-  bot posts one snapshot when all eligible attendees vote or the guild reaches
-  the day before the event, whichever comes first.
+  bot posts complete totals when everyone votes. The noon reminder the day
+  before the event also shows the totals available at that time.
 - `/activity history` privately searches prior activity names and calculates
   proposal and popularity statistics from all activity polls in the guild.
 - `/activity wipe` requires Manage Server permission and private confirmation.
@@ -43,10 +43,10 @@
   Each round records who preferred virtual at launch. Everyone else defaults
   to in person. Members can change their preselected choice inside the form
   when the round offers either format.
-- The most recently finalized virtual session makes the next round in person
-  only. Otherwise a round becomes virtual if someone available for the winning
-  slot prefers virtual. If an in-person round has no eligible host, it still
-  finalizes and the announcement says a volunteer is needed.
+- After a virtual session, the next round offers only the in-person form.
+  A round that offers either format becomes virtual if someone available for
+  the winning slot prefers virtual. Any round with a winning slot falls back
+  to virtual if it has no eligible host.
 - `/round wipe` is administrator-only, confirms through a private Discord
   button, and deletes the current guild's rounds along with their availability
   responses, activity suggestions, polls, and ballots. It keeps the guild's
@@ -58,22 +58,26 @@
   immediately.
 - Administrators can run `/round close` to close the current open round early.
   It uses the same rules and channel announcements as scheduled closure.
-- Local development can opt into availability closing and scheduled activity
-  results through `ENABLE_LOCAL_ROUND_CLOSER=true`. Production will use an
-  external trigger.
+- `/round set-event-date` lets administrators reschedule the latest round
+  after it has been finalized.
+  It updates the date used by activity voting and keeps the original winning
+  slot as the availability result.
+- Local development can opt into scheduled availability closing and session
+  reminders through `ENABLE_LOCAL_ROUND_CLOSER=true`. Reminders
+  are due at noon in the guild's timezone the day before the event.
+  Production will use an external trigger.
 
 ## Implementation sequence
 
-1. Add an administrator command to change the event date of a finalized round.
-2. Add day-before reminders to the local scheduler. Move a finalized test
-   session to tomorrow in the guild's timezone and verify that the reminder
-   uses the new date and posts once.
-3. Validate hosting in the private Discord server. Add location or joining
-   details and implement the planned behavior for rounds with no eligible host.
-4. Validate the existing activity voting flow, then add the second activity
-   totals post.
-5. Configure the scheduling channel and automate recurring round creation.
-6. Validate the full flow in the private server, then deploy with an external
+1. Validate noon reminders in the private server by moving a finalized test
+   session to tomorrow and checking that the reminder uses the new date and
+   posts once.
+2. Validate hosting in the private Discord server and add location or joining
+   details.
+3. Validate the activity voting flow, including the complete totals post when
+   the last ballot arrives after the reminder.
+4. Configure the scheduling channel and automate recurring round creation.
+5. Validate the full flow in the private server, then deploy with an external
    scheduler and roll it out to the real server. EventBridge, Lambda, and API
    Gateway remain AWS options.
 

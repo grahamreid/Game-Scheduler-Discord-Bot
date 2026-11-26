@@ -17,8 +17,7 @@ import { findActivityVoterIds } from "../db/activity-polls";
 import { getActivitySuggestions } from "../db/activity-suggestions";
 import { findAvailabilityResponses } from "../db/availability-responses";
 import { findGuildSchedulingSettings, saveGuildSchedulingSettings } from "../db/guild-scheduling-settings";
-import { getDatabase } from "../db/mongo";
-import { createPlanningRound, findOpenPlanningRound, wipeGuildRounds, type PlanningRoundDocument } from "../db/planning-rounds";
+import { createPlanningRound, findLatestPlanningRound, findOpenPlanningRound, updateLatestRoundEventDate, wipeGuildRounds } from "../db/planning-rounds";
 import { prepareRoundClosureResult } from "../round-result-workflow";
 import { closeRound } from "../scheduling/close-round";
 import { daysForCadence, generateRoundSlots } from "../slot-generation";
@@ -38,6 +37,7 @@ export async function handleAdminRoundCommand(interaction: ChatInputCommandInter
   switch (interaction.options.getSubcommand()) {
     case "create": return handleCreateRound(interaction);
     case "close": return handleCloseRound(interaction, interaction.guildId);
+    case "set-event-date": return handleSetEventDate(interaction, interaction.guildId);
     case "initialize-settings": return handleInitializeSettings(interaction);
     case "status": return handleRoundStatus(interaction, interaction.guildId);
     case "wipe": return handleRoundWipeRequest(interaction);
@@ -74,11 +74,29 @@ async function handleCloseRound(interaction: ChatInputCommandInteraction, guildI
   }
 }
 
+/** Moves a finalized session to a different date and confirms it privately. */
+async function handleSetEventDate(interaction: ChatInputCommandInteraction, guildId: string): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    const eventDate = parseCalendarDate(interaction.options.getString("date", true), "Event date");
+    const round = await updateLatestRoundEventDate(guildId, eventDate);
+    if (round === null) {
+      await interaction.editReply("The latest round must be finalized before you can change its event date.");
+      return;
+    }
+
+    await interaction.editReply(`Event date for round \`${round._id}\` is now **${round.eventDate}**.`);
+  } catch (error) {
+    console.error("/round set-event-date failed:", error);
+    await interaction.editReply(error instanceof Error ? error.message : "Could not change the event date.");
+  }
+}
+
 /** Saves the reusable scheduling defaults for a guild. */
 async function handleInitializeSettings(interaction: ChatInputCommandInteraction): Promise<void> {
   try {
     const cadence = parseCadence(interaction.options.getString("cadence", true));
-    const firstSurveyDate = parseCalendarDate(interaction.options.getString("first-survey-date", true));
+    const firstSurveyDate = parseCalendarDate(interaction.options.getString("first-survey-date", true), "First survey date");
     const launchTime = parseSurveyLaunchTime(interaction.options.getString("survey-launch-time", true));
     const defaultDeadline = interaction.options.getString("default-deadline", true);
     parseDeadline(defaultDeadline);
@@ -96,10 +114,7 @@ async function handleInitializeSettings(interaction: ChatInputCommandInteraction
 async function handleRoundStatus(interaction: ChatInputCommandInteraction, guildId: string): Promise<void> {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   try {
-    const database = await getDatabase();
-    // get latest round, open or closed
-    const round = await database.collection<PlanningRoundDocument>("planningRounds")
-      .findOne({ guildId }, { sort: { createdAt: -1 } });
+    const round = await findLatestPlanningRound(guildId);
     if (round === null) return void await interaction.editReply("There is no planning round for this server.");
     const [responses, suggestions, voterIds] = await Promise.all([
       findAvailabilityResponses(round._id),
@@ -115,6 +130,8 @@ async function handleRoundStatus(interaction: ChatInputCommandInteraction, guild
     const title = round.title ?? "Board-game Scheduling";
     const content = [
       `**${escapeMarkdown(title)}**`,
+      `Round ID \`${round._id}\``,
+      ...(round.eventDate === null ? [] : [`Event date **${round.eventDate}**`]),
       "**Availability votes**",
       slotLines.join("\n") || "No slots selected yet.",
       "**Initial submission respondents**",

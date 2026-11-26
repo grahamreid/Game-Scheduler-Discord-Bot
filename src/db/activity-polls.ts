@@ -24,14 +24,14 @@ export async function deleteGuildActivityPolls(guildId: string): Promise<void> {
   await database.collection<RoundActivityPoll>("roundActivityPolls").deleteMany({ guildId });
 }
 
-/** Loads polls that have choices but have not had their totals announced yet. */
-export async function findUnpublishedActivityPolls(roundId?: string): Promise<RoundActivityPoll[]> {
+/** Finds a round's poll if it still has choices and no complete results post. */
+export async function findUnpublishedActivityPoll(roundId: string): Promise<RoundActivityPoll | null> {
   const database = await getDatabase();
-  return database.collection<RoundActivityPoll>("roundActivityPolls").find({
-    ...(roundId === undefined ? {} : { roundId }),
+  return database.collection<RoundActivityPoll>("roundActivityPolls").findOne({
+    roundId,
     resultsPublishedAt: null,
     candidateActivityIds: { $ne: [] },
-  }).toArray();
+  });
 }
 
 /** Loads the names of suggested activities from the guild's activity catalog. */

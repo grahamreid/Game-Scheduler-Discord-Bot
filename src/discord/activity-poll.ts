@@ -1,8 +1,8 @@
 /** Renders the shared activity poll and acknowledges individual ballots privately. */
 import { ActionRowBuilder, MessageFlags, StringSelectMenuBuilder, type MessageCreateOptions, type StringSelectMenuInteraction } from "discord.js";
 import { getOpenActivityPoll, submitActivityBallot, type ActivityPollChoices } from "../activity-voting";
+import { announceActivityResultsIfReady } from "./activity-results-announcer";
 import { activityVoteMenuPrefix } from "./constants";
-import { announceReadyActivityResults } from "./activity-results-announcer";
 
 /** Builds the shared voting message with an inline activity dropdown. */
 export function buildActivityPollMessage({ poll, choices }: ActivityPollChoices): MessageCreateOptions {
@@ -31,10 +31,10 @@ export async function handleActivityVote(interaction: StringSelectMenuInteractio
     await interaction.editReply(error instanceof Error ? error.message : "Could not save your activity ballot.");
     return;
   }
-  await interaction.editReply("Your activity ballot was saved.");
-  try {
-    await announceReadyActivityResults(interaction.client, roundId);
-  } catch (error) {
-    console.error(`Could not check activity results for round ${roundId}:`, error);
-  }
+  await Promise.all([
+    interaction.editReply("Your activity ballot was saved."),
+    announceActivityResultsIfReady(interaction.client, roundId).catch((error) => {
+      console.error(`Could not announce activity results for round ${roundId}:`, error);
+    }),
+  ]);
 }

@@ -24,13 +24,13 @@ export function parseCadence(value: string): RoundCadence {
 }
 
 /** Validates a date-only command value without a timezone conversion. */
-export function parseCalendarDate(value: string): string {
+export function parseCalendarDate(value: string, fieldName: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (match === null) throw new Error("First survey date must use YYYY-MM-DD.");
+  if (match === null) throw new Error(`${fieldName} must use YYYY-MM-DD.`);
   const [year, month, day] = match.slice(1).map(Number);
   const date = new Date(year, month - 1, day);
   if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-    throw new Error("First survey date must be a real calendar date.");
+    throw new Error(`${fieldName} must be a real calendar date.`);
   }
   return value;
 }

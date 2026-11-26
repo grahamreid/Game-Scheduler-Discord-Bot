@@ -54,11 +54,14 @@ src/
 | `src/availability.ts` | Availability rules: validates current submissions, tallies selections, and chooses a winning slot. |
 | `src/slot-generation.ts` | Calendar-only logic that turns a scheduled survey date and options into dated availability slot labels. Kept separate so manual and future automated round creation use identical rules. |
 | `src/round-result-workflow.ts` | Application workflow that closes expired availability polls and prepares result data, including the selected-slot attendees, without depending on Discord. |
-| `src/activity-result-workflow.ts` | Decides whether activity totals are due and calculates a snapshot from the current eligible ballots, without depending on Discord. |
+| `src/activity-result-workflow.ts` | Counts eligible ballots for one poll. The complete results post and the reminder use the same tally. |
 | `src/scheduling/close-round.ts` | Closes one round's availability and also offers a reusable loop for rounds whose deadlines have passed. |
-| `src/scheduling/local-round-closer.ts` | Opt-in local-development timer that invokes availability closing and checks for due activity results. It does not define those business rules itself. |
+| `src/scheduling/local-round-closer.ts` | Optional local timer for availability closing and session reminders. |
 | `src/discord/round-closure-announcer.ts` | Formats attendee mentions and posts prepared round-closure results. It keeps Discord message rendering outside business workflows. |
-| `src/discord/activity-results-announcer.ts` | Formats and posts activity-vote snapshots, recording the publication time after a successful Discord send. |
+| `src/discord/activity-results-announcer.ts` | Checks the poll for the round that just received a ballot and posts the complete totals when everyone has voted. |
+| `src/session-reminder-workflow.ts` | Finds sessions due for a reminder and gathers their attendance and activity totals. |
+| `src/discord/session-reminder-announcer.ts` | Posts session reminders in the original channel and records the event date they covered. |
+| `src/discord/result-message.ts` | Shares formatting for session details and activity totals. |
 | `src/scripts/init-database.ts` | Program run by `npm run db:init`; ensures the indexes exist. |
 | `src/scripts/process-deadlines.ts` | Program run by `npm run schedule:process`; manually executes deadline processing. |
 | `src/index.ts` | Starts the local Discord Gateway bot and registers test-guild commands. It is a long-running bot process, not an HTTP server. |

@@ -6,6 +6,7 @@
 import type { Client } from "discord.js";
 import type { AvailabilityClosureResult } from "../round-result-workflow";
 import { buildActivityPollMessage } from "./activity-poll";
+import { formatSessionDetails } from "./result-message";
 
 /** Posts every current result prepared by the round-closure application workflow. */
 export async function announceRoundClosures(
@@ -18,12 +19,8 @@ export async function announceRoundClosures(
       throw new Error(`Round result has no sendable Discord channel: ${result.channelId}.`);
     }
     const title = result.title ?? "Board-game Scheduling";
-    const venue = result.host === "virtual" ? "Virtual" : "In person";
-    const hostLine = result.host === "virtual" ? ""
-      : result.host === null ? "\nHost: No eligible volunteer."
-      : `\nHost: <@${result.host}>`;
     const content = result.decision.kind === "selected"
-      ? `**${title}** availability has closed.\nSelected slot: **${result.decision.slot}**\nVenue: **${venue}**${hostLine}\nAttending: ${attendeeMentions(result.attendingUserIds)}`
+      ? `**${title}** availability has closed.\nSelected slot: **${result.decision.slot}**\n${formatSessionDetails(result.host, result.attendingUserIds)}`
       : `**${title}** availability has closed.\nNo slot reached the required ${result.minimumAttendeeCount} attendees (highest: ${result.decision.attendeeCount}). This round has been cancelled.`;
     await channel.send({
       content,
@@ -32,9 +29,4 @@ export async function announceRoundClosures(
     });
     if (result.activityPoll !== null) await channel.send(buildActivityPollMessage(result.activityPoll));
   }
-}
-
-/** Produces Discord user-mention markup for members available on the winning slot. */
-function attendeeMentions(userIds: string[]): string {
-  return userIds.map((userId) => `<@${userId}>`).join(", ") || "none";
 }

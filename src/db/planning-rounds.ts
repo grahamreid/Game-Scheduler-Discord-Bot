@@ -95,6 +95,25 @@ export async function findOpenPlanningRound(guildId: string): Promise<PlanningRo
   return (await rounds()).findOne({ guildId, status: "open" }, { sort: { createdAt: -1 } });
 }
 
+/** Finds the last round created for a guild, regardless of its status. */
+export async function findLatestPlanningRound(guildId: string): Promise<PlanningRoundDocument | null> {
+  return (await rounds()).findOne({ guildId }, { sort: { createdAt: -1, _id: -1 } });
+}
+
+/** Changes the latest round's scheduled date if it has been finalized. */
+export async function updateLatestRoundEventDate(
+  guildId: string,
+  eventDate: string,
+): Promise<Pick<PlanningRoundDocument, "_id" | "eventDate"> | null> {
+  const latestRound = await findLatestPlanningRound(guildId);
+  if (latestRound === null) return null;
+  return (await rounds()).findOneAndUpdate(
+    { _id: latestRound._id, guildId, status: "finalized" },
+    { $set: { eventDate, updatedAt: new Date() } },
+    { projection: { _id: 1, eventDate: 1 }, returnDocument: "after" },
+  );
+}
+
 /**
  * Removes the guild's rounds and their responses, suggestions, polls, and ballots.
  * Call this only after an administrator has explicitly confirmed.
@@ -131,6 +150,20 @@ export async function findExpiredRounds(now: Date): Promise<PlanningRoundDocumen
   }).toArray();
 }
 
+/** Finds finalized sessions with no reminder for their current event date. */
+export async function findRoundsAwaitingReminder(earliestEventDate: string): Promise<PlanningRoundDocument[]> {
+  return (await rounds()).find({
+    status: "finalized",
+    eventDate: { $gte: earliestEventDate }, // check on whether too early to send reminder done elsewhere
+    $expr: { $ne: [{ $ifNull: ["$reminderSentForDate", null] }, "$eventDate"] },
+  }).toArray();
+}
+
+/** Records the reminder if its event date is still current. */
+export async function markRoundReminderSent(roundId: string, eventDate: string): Promise<void> {
+  await (await rounds()).updateOne({ _id: roundId, eventDate }, { $set: { reminderSentForDate: eventDate } });
+}
+
 /** Finds each volunteer's most recent hosting */
 export async function findLastHostedDates(guildId: string, userIds: string[], eventDate: string): Promise<Map<string, string>> {
   const previousSessions = await (await rounds())
@@ -150,7 +183,7 @@ export async function finalizePlanningRound(
   roundId: string,
   slot: string,
   eventDate: string,
-  host: string | null,
+  host: string,
   closedAt: Date,
 ): Promise<boolean> {
   const result = await (await rounds()).updateOne(

@@ -60,8 +60,10 @@ export interface PlanningRound {
   /** Attendance threshold copied from guild settings when this round was opened. */
   minimumAttendeeCount: number;
   selectedSlot: string | null;
-  /** Local calendar date of the selected slot, set when the round is finalized. */
+  /** Scheduled local calendar date, initially taken from the winning slot. */
   eventDate: string | null;
+  /** Event date for which the bot has already sent a reminder. */
+  reminderSentForDate?: string;
   /** A Discord user ID for an in-person host, "virtual" for an online session, or null when no host is assigned. */
   host: string | null;
   venuePolicy: RoundVenuePolicy;
@@ -116,7 +118,7 @@ export interface RoundActivityPoll {
   eligibleUserIds: string[];
   candidateActivityIds: string[];
   voteLimit: number;
-  /** Set after the one-time vote-total announcement is successfully posted. */
+  /** Set after the full vote totals are successfully posted. */
   resultsPublishedAt: Date | null;
   createdAt: Date;
 }

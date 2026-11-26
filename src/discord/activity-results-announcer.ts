@@ -1,50 +1,27 @@
-/** Sends activity-vote snapshots when the publication trigger has arrived. */
+/** Posts complete activity totals once all eligible attendees have voted. */
 import { escapeMarkdown, type Client } from "discord.js";
-import { getPollResultsIfReady } from "../activity-result-workflow";
-import { markActivityResultsPublished } from "../db/activity-polls";
+import { getPollResults } from "../activity-result-workflow";
+import { findUnpublishedActivityPoll, markActivityResultsPublished } from "../db/activity-polls";
+import { findPlanningRound } from "../db/planning-rounds";
+import { formatActivityTotals } from "./result-message";
 
-// Keep overlapping ballot and timer triggers from posting the same result twice in this bot process.
-const publishingRoundIds = new Set<string>();
+export async function announceActivityResultsIfReady(client: Client, roundId: string): Promise<void> {
+  const poll = await findUnpublishedActivityPoll(roundId);
+  if (poll === null) return;
 
-/** Publishes ready activity totals; failed sends remain eligible for a later retry. */
-export async function announceReadyActivityResults(
-  client: Client,
-  roundId?: string,
-): Promise<void> {
-  const dueResults = await getPollResultsIfReady(roundId);
+  const totals = await getPollResults(poll);
+  if (totals.ballotCount !== totals.attendeeCount) return;
 
-  for (const result of dueResults) {
-    if (publishingRoundIds.has(result.roundId)) continue;
-    publishingRoundIds.add(result.roundId);
-    
-    try {
-      const channel = await client.channels.fetch(result.channelId);
-      if (channel === null || !channel.isSendable()) {
-        throw new Error(`Activity results have no sendable Discord channel: ${result.channelId}.`);
-      }
-      const title = result.title ?? "Board-game Scheduling";
-      const publicationReason = result.allAttendeesVoted
-        ? "Everyone attending has submitted an activity ballot."
-        : "The day-before-results cutoff has arrived.";
-      const tallyLines = result.activityTallies.map(({ name, votes }) =>
-        `- ${escapeMarkdown(name)} — ${votes} ${votes === 1 ? "vote" : "votes"}`,
-      );
-      await channel.send({
-        content: [
-          `**${escapeMarkdown(title)} — activity vote totals**`,
-          `Event date: **${result.eventDate}**`,
-          publicationReason,
-          `Ballots received: ${result.ballotCount}/${result.attendeeCount}.`,
-          ...tallyLines,
-          "These totals are for discussion, not a binding game choice. Ballots can still be changed through the event date; this announcement is a snapshot.",
-        ].join("\n"),
-      });
-      await markActivityResultsPublished(result.roundId, new Date());
-      console.log(`Activity vote results announced for round ${result.roundId}.`);
-    } catch (error) {
-      console.error(`Could not announce activity vote results for round ${result.roundId}:`, error);
-    } finally {
-      publishingRoundIds.delete(result.roundId);
-    }
+  const round = (await findPlanningRound(roundId))!;
+  const channel = await client.channels.fetch(round.channelId);
+  if (channel === null || !channel.isSendable()) {
+    throw new Error(`Activity results have no sendable Discord channel: ${round.channelId}.`);
   }
+  const title = round.title ?? "Board-game Scheduling";
+  await channel.send({
+    content: `**${escapeMarkdown(title)}**\nEvent date: **${round.eventDate}**\nEveryone attending has submitted an activity ballot.\n\n${formatActivityTotals(totals)}`,
+    allowedMentions: { parse: [] },
+  });
+  await markActivityResultsPublished(roundId, new Date());
+  console.log(`Activity vote results announced for round ${roundId}.`);
 }

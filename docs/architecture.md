@@ -51,7 +51,7 @@ MongoDB uses collections of JSON-like documents rather than SQL tables.
 planningRounds
   _id, guildId, channelId, status, title, deadline,
   candidateSlots: [ { value } ],
-  minimumAttendeeCount, selectedSlot, eventDate, host, venuePolicy, virtualPreferenceUserIds,
+  minimumAttendeeCount, selectedSlot, eventDate, reminderSentForDate, host, venuePolicy, virtualPreferenceUserIds,
   finalizedAt, createdAt, updatedAt
 
 guildSchedulingSettings
@@ -140,9 +140,10 @@ withdraws any earlier hosting offer.
 
 The opening post says which formats the round offers. If the most recently
 finalized round in the guild was virtual, the next round offers only the
-in-person form. Otherwise it offers either format. At
-closure, a round that offers either format becomes virtual if any attendee
-available for the winning slot prefers virtual.
+in-person form. Otherwise it offers either format. A round that offers either
+format becomes virtual if any attendee available for the winning slot prefers
+virtual. Both kinds of round fall back to virtual if nobody available for the
+winning slot can host.
 
 The host starts as `null`. Closing a successful round stores `"virtual"` for
 an online session or the chosen host's Discord ID for an in-person session.
@@ -150,9 +151,8 @@ The bot considers only members who volunteered and selected the winning slot.
 It gives first-time hosts priority, then picks the person with the earliest
 last hosting date. Ties use ascending Discord user ID. Hosting history comes
 from finalized rounds in the same guild with event dates before the new
-session. If no eligible member volunteered, the round still finalizes and the
-announcement says a host is needed. `/round wipe` also removes hosting history
-because it is stored on the rounds.
+session. `/round wipe` also removes hosting history because it is stored on the
+rounds.
 
 ## Activity suggestions and discussion votes
 
@@ -188,14 +188,13 @@ entire ballot with one database write. The shared dropdown offers the first
 
 The round stores the session date. Slots have no exact end time, so voting
 stays open through that date using the guild's configured timezone. The admin
-status reply lists who has voted. The bot posts one snapshot of activity totals
-as soon as every eligible attendee has submitted a ballot, or when the guild's
-local date reaches the day before the event, whichever happens first. If the
-day-before trigger arrives with missing ballots, the announcement includes the
-number received out of the eligible attendee count and every remaining
-candidate's vote count, including zero. Activity ballots remain editable
-through the event date; later changes do not revise the already-posted snapshot.
-The announcement says the totals are for discussion, not a binding game choice.
+status reply lists who has voted. The bot posts complete totals once every
+eligible attendee has submitted a ballot. The session reminder includes the
+current totals when there is a poll. If it goes out with missing ballots,
+complete totals can follow when the last ballot arrives by the end of the
+event date. Both posts show the number of ballots received and the vote count
+for every remaining candidate, including zero. Each saved ballot triggers the
+complete results check for that round.
 
 Dates such as an event day are `YYYY-MM-DD` strings in the guild's timezone.
 Deadlines and audit fields are MongoDB `Date` values, which represent UTC
@@ -207,6 +206,12 @@ instants.
 before its deadline. It uses the same selection and announcement workflow as
 the local timer. The result and any activity poll go to the round's original
 channel. The administrator gets a private confirmation.
+
+Administrators can use `/round set-event-date date:YYYY-MM-DD` to reschedule the
+server's latest round after it has been finalized. The command replies
+privately. `/round status` shows the current event date alongside the original
+availability result, and activity voting uses the updated date in the guild's
+timezone.
 
 `schedule:process` is an idempotent, manually runnable deadline processor. It
 finds `open` rounds whose `deadline` has passed, then counts each member's
@@ -231,17 +236,26 @@ the data needed for attendance and host eligibility.
 When `ENABLE_LOCAL_ROUND_CLOSER=true`, the local Discord process runs an
 in-process timer. It checks immediately at startup and then at
 `ROUND_CLOSER_INTERVAL_MS` (30 seconds is useful for testing) to close expired
-availability polls and check whether activity totals are due. After a member
-submits the last missing activity ballot, the Discord interaction handler also
-checks for results immediately. The Discord layer posts the availability result
-and a separate activity poll when there are eligible suggestions. It later
-posts activity totals once per poll; failed sends are retried on a later timer
-check. The manual `schedule:process` command processes availability in MongoDB
+availability polls and send session reminders. The Discord layer posts the
+availability result and a separate activity poll when there are eligible
+suggestions. Complete activity totals are triggered by the ballot handler.
+The manual `schedule:process` command processes availability in MongoDB
 without posting to Discord. Use the local Discord closer to test scheduled
 channel posts.
 
 Production will not use this in-process timer. An external scheduler will call
 the same reusable workflow.
+
+## Session reminders
+
+The timer posts a reminder on its first check at or after noon on the day
+before an event, using the guild's timezone. The message shows the current
+event date, venue, host when assigned, and attendees from the winning slot.
+It also includes the current activity totals when there is a poll. Sessions
+without an activity poll still receive a reminder. The round stores the date
+it was reminded for, so later checks skip that date and moving a round to a
+new date lets it receive a new reminder. If the bot is offline the whole
+afternoon and evening before the event, it misses that reminder.
 
 ## Local verification
 

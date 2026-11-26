@@ -22,8 +22,8 @@ export function buildRoundPost(round: PlanningRoundDocument): {
   const title = round.title === null ? "Board-game Scheduling" : round.title;
   const offersVenueChoice = round.venuePolicy === "either";
   const venueDescription = offersVenueChoice
-    ? "**Venue: In person or virtual.** You can change your preference in the form. The session will be virtual if anyone available for the selected slot prefers it."
-    : "**Venue: In person only.**";
+    ? "**Venue: In person or virtual.** You can change your preference in the form. The session will be virtual if anyone available for the selected slot prefers it or nobody available can host."
+    : "**Venue: In person only.** The session will move online if nobody available can host.";
   const formButtonId = `${availabilityFormButtonPrefix}${round._id}`;
   const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder().setCustomId(formButtonId).setLabel("Submit availability").setStyle(ButtonStyle.Primary),

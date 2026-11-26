@@ -38,12 +38,12 @@ export async function closeRound(round: PlanningRoundDocument, closedAt = new Da
   const selectedSlot = decision.slot;
   const attendees = responses.filter(({ slots }) => slots.includes(selectedSlot));
   const attendingUserIds = attendees.map(({ userId }) => userId);
-  const isVirtual = round.venuePolicy === "either"
+  const attendeePrefersVirtual = round.venuePolicy === "either"
     && attendingUserIds.some((userId) => round.virtualPreferenceUserIds.includes(userId));
   // Every generated slot starts with its YYYY-MM-DD calendar date.
   const eventDate = selectedSlot.slice(0, 10);
   const volunteerIds = attendees.filter(({ canHost }) => canHost === true).map(({ userId }) => userId);
-  const host = isVirtual ? "virtual" : await chooseInPersonHost(round.guildId, volunteerIds, eventDate);
+  const host = attendeePrefersVirtual ? "virtual" : await chooseInPersonHost(round.guildId, volunteerIds, eventDate) ?? "virtual";
   const closedSuccessfully = await finalizePlanningRound(round._id, selectedSlot, eventDate, host, closedAt);
   return { roundId: round._id, decision, attendingUserIds, closedSuccessfully };
 }
